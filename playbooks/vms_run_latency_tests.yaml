@@ -26,6 +26,7 @@
            --max_SV_cnt 4000
 
 - name: Prepare publisher
+  become: true
   hosts:
     publisher
   vars:
