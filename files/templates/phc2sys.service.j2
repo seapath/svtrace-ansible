@@ -10,7 +10,7 @@ Before=time-sync.target
 
 [Service]
 Type=simple
-ExecStart=phc2sys -w -s {{ ptp_device }} -c CLOCK_REALTIME -r -O 0 -E linreg
+ExecStart=chrt --fifo 59 taskset -c {{ phc_core }} phc2sys -w -s {{ ptp_device }} -c CLOCK_REALTIME -r -O 0 -E linreg
 
 [Install]
 WantedBy=multi-user.target
