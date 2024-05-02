@@ -20,34 +20,33 @@
   hosts:
     - vms
   tasks:
+      - name: Send ptp4l configuration file
+        copy:
+          src: ../files/configuration/ptp4l.conf
+          dest: /etc/ptp4l.conf
       - name: Disable ptp4l.service
         ansible.builtin.systemd:
           service: ptp4l.service
           enabled: false
           state: stopped
-
       - name: Disable phc2sys.service
         ansible.builtin.systemd:
           service: phc2sys.service
           enabled: false
           state: stopped
-
       - name: Send ptp4l.service
         template:
           src: ../files/templates/ptp4l.service.j2
           dest: /lib/systemd/system/ptp4l.service
-
       - name: Send phc2sys.service
         template:
           src: ../files/templates/phc2sys.service.j2
           dest: /lib/systemd/system/phc2sys.service
-
       - name: Enable ptp4l.service
         ansible.builtin.systemd:
           service: ptp4l.service
           enabled: true
           state: started
-
       - name: Enable phc2sys.service
         ansible.builtin.systemd:
           service: phc2sys.service
@@ -58,34 +57,33 @@
   hosts:
     publisher
   tasks:
+      - name: Send ptp4l configuration file
+        copy:
+          src: ../files/configuration/ptp4l.conf
+          dest: /etc/ptp4l.conf
       - name: Disable ptp4l.service
         ansible.builtin.systemd:
           service: ptp4l.service
           enabled: false
           state: stopped
-
       - name: Disable phc2sys.service
         ansible.builtin.systemd:
           service: phc2sys.service
           enabled: false
           state: stopped
-
       - name: Send ptp4l.service
         template:
           src: ../files/templates/ptp4l.service.j2
           dest: /lib/systemd/system/ptp4l.service
-
       - name: Send phc2sys.service
         template:
           src: ../files/templates/phc2sys.service.j2
           dest: /lib/systemd/system/phc2sys.service
-
       - name: Enable ptp4l.service
         ansible.builtin.systemd:
           service: ptp4l.service
           enabled: true
           state: started
-
       - name: Enable phc2sys.service
         ansible.builtin.systemd:
           service: phc2sys.service
