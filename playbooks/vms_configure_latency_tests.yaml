@@ -1,4 +1,20 @@
 ---
+- name: Prepare hypervisor
+  become: true
+  hosts:
+    - hypervisors
+  tasks:
+      - name: Disable ptp4l.service
+        ansible.builtin.systemd:
+          service: ptp4l.service
+          enabled: false
+          state: stopped
+      - name: Disable phc2sys.service
+        ansible.builtin.systemd:
+          service: phc2sys.service
+          enabled: false
+          state: stopped
+
 - name: Prepare receiver
   become: true
   hosts:
