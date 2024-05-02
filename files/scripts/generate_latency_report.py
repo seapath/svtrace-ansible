@@ -74,6 +74,7 @@ def save_latency_histogram(latencies, sub_name, output):
     filename = os.path.realpath(f"{output}/latency_histogram_{sub_name}.png")
     plt.savefig(filename)
     print(f"Histogram saved as 'latency_histogram_{sub_name}.png'.")
+    plt.close()
     return filename
 
 def plot_stream(stream_name, latencies, sub_name, output):
@@ -99,9 +100,9 @@ def generate_adoc(pub, sub, output):
                 """
         )
         stream_name, latencies = compute_latency(pub, sub, output)
-
-        plot_stream(stream_name, latencies, sub_name, output)
         filename = save_latency_histogram(latencies,sub_name,output)
+        plot_stream(stream_name, latencies, sub_name, output)
+
         adoc_file.write(
                 vm_line.format(
                     _sub_name_=sub_name,
