@@ -59,6 +59,12 @@ def compute_max(latencies):
 def compute_average(latencies):
     return np.round(np.mean(latencies)) if latencies.size > 0 else None
 
+def compute_neglat(latencies):
+    return np.count_nonzero(latencies < 0)
+
+def compute_size(latencies):
+    return np.size(latencies)
+
 def save_latency_histogram(latencies, sub_name, output):
     # Plot latency histograms
     plt.hist(latencies, bins=20, alpha=0.7)
@@ -91,10 +97,11 @@ def generate_adoc(pub, sub, output):
         adoc_file.write("== Latency tests\n")
         vm_line = textwrap.dedent(
                 """
-                === Subscriber {_sub_name_}
+                === Subscriber {_sub_name_} latency test on {_size_} samples value
                 |===
                 |Number of stream |Minimum latency |Maximum latency |Average latency
                 |{_stream_} |{_minlat_} us |{_maxlat_} us |{_avglat_} us
+                |Number of latencies < 0: {_neglat_} ({_neg_percentage_}%)
                 |===
                 image::{_output_}/latency_histogram_{_sub_name_}.png[]
                 """
@@ -110,6 +117,9 @@ def generate_adoc(pub, sub, output):
                     _minlat_= compute_min(latencies),
                     _maxlat_= compute_max(latencies),
                     _avglat_= compute_average(latencies),
+                    _neglat_ = compute_neglat(latencies),
+                    _size_ = compute_size(latencies),
+                    _neg_percentage_ = np.round(compute_neglat(latencies) / compute_size(latencies),5) *100,
                     _output_= filename
                 )
         )
