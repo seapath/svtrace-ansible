@@ -5,7 +5,7 @@ After=network-online.target
 
 [Service]
 Type=simple
-ExecStart=ptp4l -2 -i {{ ptp_interface }} -H -P
+ExecStart=ptp4l -f /etc/ptp4l.conf -2 -i {{ ptp_interface }} -H -P
 
 [Install]
 WantedBy=multi-user.target
