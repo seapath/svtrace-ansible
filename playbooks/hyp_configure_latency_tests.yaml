@@ -4,6 +4,10 @@
   hosts:
     - hypervisors
   tasks:
+      - name: Send ptp4l configuration file
+        copy:
+          src: ../files/configuration/ptp4l.conf
+          dest: /etc/ptp4l.conf
       - name: Disable ptp4l.service
         ansible.builtin.systemd:
           service: ptp4l.service
@@ -38,6 +42,10 @@
   hosts:
     publisher
   tasks:
+      - name: Send ptp4l configuration file
+        copy:
+          src: ../files/configuration/ptp4l.conf
+          dest: /etc/ptp4l.conf
       - name: Disable ptp4l.service
         ansible.builtin.systemd:
           service: ptp4l.service
