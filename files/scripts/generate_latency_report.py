@@ -78,7 +78,8 @@ def save_latency_histogram(latencies, sub_name, output):
 
 def plot_stream(stream_name, latencies, sub_name, output):
     plt.plot(range(len(latencies)), latencies)
-    plt.ylabel('Value')
+    plt.xlabel("Samples value")
+    plt.ylabel('Latency (µs)')
     plt.title('Stream: {}'.format(stream_name))
     plt.savefig(f"{output}/plot_{sub_name}.png")
     print(f"Plot saved as 'plot_{sub_name}.png'.")
