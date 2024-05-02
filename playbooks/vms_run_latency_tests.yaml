@@ -32,7 +32,6 @@
   vars:
     - pcap_file: Df_Tri_Z1
     - first_SV: 1096
-    - pcap_cycles: 10
   tasks:
       - name: Send SV timestamp logger
         copy:
