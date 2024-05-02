@@ -53,7 +53,7 @@
           --first_SV_cnt \ {{first_SV}} \
            --max_SV_cnt 4000
       - name: Send SV
-        command: bittwist -i {{ sv_interface }} /pcap/{{ pcap_file }}.pcap -l {{ pcap_cycles }}
+        command: taskset -c 4 chrt --fifo 1 bittwist -i {{ sv_interface }} /pcap/{{ pcap_file }}.pcap -l {{ pcap_cycles }}
 
 - name: Stop test on receiver
   hosts:
