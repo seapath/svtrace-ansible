@@ -1,5 +1,5 @@
 settings.json
 seapath-inventories/
-tests_results/
+tests_results*/
 *.tar
 .vscode/
