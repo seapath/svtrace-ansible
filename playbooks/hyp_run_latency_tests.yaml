@@ -50,7 +50,7 @@
           --first_SV_cnt \ {{first_SV}} \
            --max_SV_cnt 4000
       - name: Send SV
-        command: chrt --fifo 1 taskset -c 4 bittwist -i {{ sv_interface }} /pcap/{{ pcap_file }}.pcap -l {{ pcap_cycle }}
+        command: chrt --fifo 1 taskset -c 4 bittwist -i {{ sv_interface }} /pcap/{{ pcap_file }}.pcap -l {{ pcap_cycles }}
 
 - name: Stop test on receiver
   become: true
