@@ -1,0 +1,16 @@
+[Install]
+WantedBy=multi-user.target
+
+[Unit]
+Description=Synchronize system clock or PTP hardware clock (PHC)
+Documentation=man:phc2sys
+Requires=ptp4l.service
+After=ptp4l.service
+Before=time-sync.target
+
+[Service]
+Type=simple
+ExecStart=chrt --fifo 59 taskset -c {{ phc_core }} phc2sys -s {{ ptp_device }} -c CLOCK_REALTIME -r -O 0 -E linreg
+
+[Install]
+WantedBy=multi-user.target

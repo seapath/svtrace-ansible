@@ -43,7 +43,7 @@
   tasks:
       - name: Send phc2sys.service
         template:
-          src: ../files/templates/phc2sys.service.j2
+          src: ../files/templates/vms_phc2sys.service.j2
           dest: /etc/systemd/system/phc2sys.service
         notify:
           - Enable phc2sys.service
