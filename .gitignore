@@ -3,3 +3,4 @@ seapath-inventories/
 tests_results*/
 *.tar
 .vscode/
+playbooks/debug.yaml
