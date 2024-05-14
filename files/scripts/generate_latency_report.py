@@ -83,6 +83,24 @@ def save_latency_histogram(latencies, sub_name, output):
     plt.close()
     return filename
 
+def plot_cdf(latencies, output):
+    sorted_latency = np.sort(latencies)
+
+    # Calculate the cumulative percentage for each latency value
+    cumulative_percentage = np.arange(1, len(sorted_latency) + 1) / len(sorted_latency) * 100
+
+    # Plot the CDF
+    plt.figure(figsize=(8, 6))
+    plt.plot(sorted_latency, cumulative_percentage, linestyle='-', marker="x", linewidth=1)
+    plt.xlabel('Latency (µs)')
+    plt.ylabel('Cumulative Percentage (%)')
+    plt.title('Cumulative Distribution Function (CDF) of Latency')
+
+
+    plt.grid(True)
+    plt.savefig(f"{output}/cdf.png")
+    plt.close()
+
 def plot_stream(stream_name, latencies, sub_name, output):
     plt.plot(range(len(latencies)), latencies)
     plt.xscale("log")
@@ -110,6 +128,7 @@ def generate_adoc(pub, sub, output):
         stream_name, latencies = compute_latency(pub, sub, output)
         filename = save_latency_histogram(latencies,sub_name,output)
         plot_stream(stream_name, latencies, sub_name, output)
+        plot_cdf(latencies, output)
 
         adoc_file.write(
                 vm_line.format(
