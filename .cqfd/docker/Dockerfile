@@ -17,3 +17,4 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN sed -i "s/# en_US\.UTF-8 UTF-8/en_US\.UTF-8 UTF-8/" /etc/locale.gen
 RUN locale-gen
 RUN dpkg-reconfigure locales
+ADD check_yaml.sh /usr/bin/check_yaml

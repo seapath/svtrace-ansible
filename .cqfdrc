@@ -2,3 +2,5 @@
 org='seapath'
 name='inventories'
 
+[build]
+command='check_yaml'
