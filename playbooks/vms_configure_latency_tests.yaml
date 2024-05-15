@@ -13,13 +13,13 @@
       - name: Send ptp4l.service
         template:
           src: ../files/templates/ptp4l.service.j2
-          dest: /lib/systemd/system/ptp4l.service
+          dest: /etc/systemd/system/ptp4l.service
         notify:
           Enable ptp4l.service
       - name: Send phc2sys.service
         template:
           src: ../files/templates/phc2sys.service.j2
-          dest: /lib/systemd/system/phc2sys.service
+          dest: /etc/systemd/system/phc2sys.service
         notify:
           Enable phc2sys.service
   handlers:
@@ -44,7 +44,7 @@
       - name: Send phc2sys.service
         template:
           src: ../files/templates/phc2sys.service.j2
-          dest: /lib/systemd/system/phc2sys.service
+          dest: /etc/systemd/system/phc2sys.service
         notify:
           - Enable phc2sys.service
   handlers:
@@ -69,13 +69,13 @@
       - name: Send ptp4l.service
         template:
           src: ../files/templates/ptp4l.service.j2
-          dest: /lib/systemd/system/ptp4l.service
+          dest: /etc/systemd/system/ptp4l.service
         notify:
           Enable ptp4l.service
       - name: Send phc2sys.service
         template:
           src: ../files/templates/phc2sys.service.j2
-          dest: /lib/systemd/system/phc2sys.service
+          dest: /etc/systemd/system/phc2sys.service
         notify:
           Enable phc2sys.service
   handlers:
