@@ -1,7 +1,8 @@
 ---
-- name: Prepare hypervisor
+- name: Prepare publisher and hypervisor
   become: true
   hosts:
+    - publisher
     - hypervisors
   tasks:
       - name: Send ptp4l configuration file
@@ -36,10 +37,10 @@
           state: restarted
           daemon_reload: true
 
-- name: Prepare receiver
+- name: Prepare vms
   become: true
   hosts:
-    - vms
+    - subscriber
   tasks:
       - name: Send phc2sys.service
         template:
@@ -48,43 +49,6 @@
         notify:
           - Enable phc2sys.service
   handlers:
-      - name: Enable phc2sys.service
-        ansible.builtin.systemd:
-          service: phc2sys.service
-          enabled: true
-          state: restarted
-          daemon_reload: true
-
-- name: Prepare publisher
-  become: true
-  hosts:
-    publisher
-  tasks:
-      - name: Send ptp4l configuration file
-        copy:
-          src: ../files/configuration/ptp4l.conf
-          dest: /etc/ptp4l.conf
-        notify:
-          Enable ptp4l.service
-      - name: Send ptp4l.service
-        template:
-          src: ../files/templates/ptp4l.service.j2
-          dest: /etc/systemd/system/ptp4l.service
-        notify:
-          Enable ptp4l.service
-      - name: Send phc2sys.service
-        template:
-          src: ../files/templates/phc2sys.service.j2
-          dest: /etc/systemd/system/phc2sys.service
-        notify:
-          Enable phc2sys.service
-  handlers:
-      - name: Enable ptp4l.service
-        ansible.builtin.systemd:
-          service: ptp4l.service
-          enabled: true
-          state: restarted
-          daemon_reload: true
       - name: Enable phc2sys.service
         ansible.builtin.systemd:
           service: phc2sys.service
