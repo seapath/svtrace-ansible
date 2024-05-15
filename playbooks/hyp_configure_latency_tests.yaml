@@ -21,11 +21,11 @@
       - name: Send ptp4l.service
         template:
           src: ../files/templates/ptp4l.service.j2
-          dest: /lib/systemd/system/ptp4l.service
+          dest: /etc/systemd/system/ptp4l.service
       - name: Send phc2sys.service
         template:
           src: ../files/templates/phc2sys.service.j2
-          dest: /lib/systemd/system/phc2sys.service
+          dest: /etc/systemd/system/phc2sys.service
       - name: Enable ptp4l.service
         ansible.builtin.systemd:
           service: ptp4l.service
@@ -59,11 +59,11 @@
       - name: Send ptp4l.service
         template:
           src: ../files/templates/ptp4l.service.j2
-          dest: /lib/systemd/system/ptp4l.service
+          dest: /etc/systemd/system/ptp4l.service
       - name: Send phc2sys.service
         template:
           src: ../files/templates/phc2sys.service.j2
-          dest: /lib/systemd/system/phc2sys.service
+          dest: /etc/systemd/system/phc2sys.service
       - name: Enable ptp4l.service
         ansible.builtin.systemd:
           service: ptp4l.service
