@@ -27,6 +27,7 @@
           docker run --privileged \
           -d \
           -v /tmp:/tmp \
+          --cpuset-cpus={{ sv_ts_core }} \
           --name sv_timestamp_logger \
           --network=host sv_timestamp_logger \
           -d {{sv_interface}} \
