@@ -4,8 +4,6 @@ WantedBy=multi-user.target
 [Unit]
 Description=Synchronize system clock or PTP hardware clock (PHC)
 Documentation=man:phc2sys
-Requires=ptp4l.service
-After=ptp4l.service
 Before=time-sync.target
 
 [Service]
