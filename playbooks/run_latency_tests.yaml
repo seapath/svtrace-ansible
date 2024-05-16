@@ -103,6 +103,30 @@
           src: /tmp/{{ pub_sv_file }}
           dest: ../tests_results/
           flat: true
+
+- name: Fetch logs
+  become: true
+  hosts:
+    - publisher
+    - hypervisors
+    - subscriber
+  tasks:
+      - name: Extract PTP logs
+        shell:
+          cmd: >-
+            journalctl -b -u {{ item }}.service > /tmp/{{ item }}_{{ inventory_hostname }}.log
+        with_items:
+          - ptp4l
+          - phc2sys
+      - name: Fetch PTP logs
+        fetch:
+          src: /tmp/{{ item }}_{{ inventory_hostname }}.log
+          dest: ../tests_results/
+          flat: true
+        with_items:
+          - ptp4l
+          - phc2sys
+
 - name: Compute results
   hosts:
     - localhost
