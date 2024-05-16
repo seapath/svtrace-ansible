@@ -1,9 +1,10 @@
 ---
-- name: Prepare receiver
+- name: Prepare publisher and receiver
   become: true
   vars:
     - first_SV: 1096
   hosts:
+    - publisher
     - subscriber
   tasks:
       - name: Send SV timestamp logger
@@ -24,64 +25,21 @@
           --first_SV_cnt \ {{first_SV}} \
            --max_SV_cnt 4000
 
-- name: Prepare publisher
+- name: Start test
   become: true
   hosts:
     publisher
   vars:
     - pcap_file: Df_Tri_Z1
-    - first_SV: 1096
   tasks:
-      - name: Send SV timestamp logger
-        copy:
-          src: ../files/sv_timestamp_logger.tar
-          dest: /tmp/sv_timestamp_logger.tar
-      - name: Load SV timestamp logger
-        command: docker image load -i /tmp/sv_timestamp_logger.tar
-      - name : Run SV timestamp logger container
-        command:
-          docker run --privileged \
-          -d \
-          -v /tmp:/tmp \
-          --name sv_timestamp_logger \
-          --network=host sv_timestamp_logger \
-          -d {{sv_interface}} \
-          -f /tmp/{{ sv_file }} \
-          --first_SV_cnt \ {{first_SV}} \
-           --max_SV_cnt 4000
       - name: Send SV
         command: chrt --fifo 1 taskset -c 4 bittwist -i {{ sv_interface }} /pcap/{{ pcap_file }}.pcap -l {{ pcap_cycles }}
 
-- name: Stop test on receiver
-  become: true
-  hosts:
-    - subscriber
-  tasks:
-      - name: Stop SV timestamp logger
-        command:
-          docker stop sv_timestamp_logger
-      - name: Retrieve results
-        shell:
-          cmd: >-
-            docker logs sv_timestamp_logger > /tmp/sv_drops
-      - name: Fetch sv drop
-        fetch:
-          src: /tmp/sv_drops
-          dest: ../tests_results/
-          flat: true
-      - name: Fetch subscriber timestamps
-        fetch:
-          src: /tmp/{{ sv_file }}
-          dest: ../tests_results/
-          flat: true
-      - name: Remove SV timestamp logger
-        command:
-          docker rm sv_timestamp_logger
-
-- name: Stop test on publisher
+- name: End test
   become: true
   hosts:
     - publisher
+    - subscriber
   tasks:
       - name: Stop SV timestamp logger
         command:
@@ -98,7 +56,7 @@
       - name: Remove SV timestamp logger
         command:
           docker rm sv_timestamp_logger
-      - name: Fetch publisher timestamps
+      - name: Fetch SV timestamps
         fetch:
           src: /tmp/{{ sv_file }}
           dest: ../tests_results/
