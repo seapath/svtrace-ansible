@@ -34,6 +34,10 @@
           -f /tmp/{{ sv_file }} \
           --first_SV_cnt \ {{first_SV}} \
            --max_SV_cnt 4000
+      - name: Set FIFO scheduling on SV timestamp logger process
+        shell:
+          PID=$(ps -eTo comm,pid |grep sv_timestamp_lo|cut -d' ' -f2)
+          chrt --fifo -p 1 $PID
 
 - name: Start test
   become: true
