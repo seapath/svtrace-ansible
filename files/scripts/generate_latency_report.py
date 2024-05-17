@@ -91,9 +91,9 @@ def plot_cdf(latencies, output):
 
     # Plot the CDF
     plt.figure(figsize=(8, 6))
-    plt.plot(sorted_latency, cumulative_percentage, linestyle='-', marker="x", linewidth=1)
-    plt.xlabel('Latency (µs)')
-    plt.ylabel('Cumulative Percentage (%)')
+    plt.plot(cumulative_percentage, sorted_latency, linestyle='-', marker="x", linewidth=1)
+    plt.ylabel('Latency (µs)')
+    plt.xlabel('Cumulative Percentage (%)')
     plt.title('Cumulative Distribution Function (CDF) of Latency')
 
 
