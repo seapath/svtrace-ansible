@@ -86,13 +86,13 @@
       - name: Extract PTP logs
         shell:
           cmd: >-
-            journalctl -b -u {{ item }}.service > /tmp/{{ item }}_{{ inventory_hostname }}.log
+            journalctl -b -u {{ item }}.service > /tmp/{{ item }}_{{ inventory_hostname }}
         with_items:
           - ptp4l
           - phc2sys
       - name: Fetch PTP logs
         fetch:
-          src: /tmp/{{ item }}_{{ inventory_hostname }}.log
+          src: /tmp/{{ item }}_{{ inventory_hostname }}
           dest: ../tests_results/
           flat: true
         with_items:
