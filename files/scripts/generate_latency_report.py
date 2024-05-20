@@ -60,24 +60,24 @@ def get_stream_count(output):
     data = np.genfromtxt(filename, delimiter=":", usecols=[0], dtype=str)
     return np.unique(data).size
 
-def compute_min(latencies):
-    return np.min(latencies) if latencies.size > 0 else None
+def compute_min(values):
+    return np.min(values) if values.size > 0 else None
 
-def compute_max(latencies):
-    return np.max(latencies) if latencies.size > 0 else None
+def compute_max(values):
+    return np.max(values) if values.size > 0 else None
 
-def compute_average(latencies):
-    return np.round(np.mean(latencies)) if latencies.size > 0 else None
+def compute_average(values):
+    return np.round(np.mean(values)) if values.size > 0 else None
 
-def compute_neglat(latencies):
-    return np.count_nonzero(latencies < 0)
+def compute_neglat(values):
+    return np.count_nonzero(values < 0)
 
-def compute_size(latencies):
-    return np.size(latencies)
+def compute_size(values):
+    return np.size(values)
 
-def save_latency_histogram(latencies, sub_name, output):
+def save_histogram(values, sub_name, output):
     # Plot latency histograms
-    plt.hist(latencies, bins=20, alpha=0.7)
+    plt.hist(values, bins=20, alpha=0.7)
 
     # Add titles and legends
     plt.xlabel("Latency (us)")
@@ -93,8 +93,8 @@ def save_latency_histogram(latencies, sub_name, output):
     plt.close()
     return filename
 
-def plot_cdf(latencies, output):
-    sorted_latency = np.sort(latencies)
+def plot_cdf(values, output):
+    sorted_latency = np.sort(values)
 
     # Calculate the cumulative percentage for each latency value
     cumulative_percentage = np.arange(1, len(sorted_latency) + 1) / len(sorted_latency) * 100
@@ -111,8 +111,8 @@ def plot_cdf(latencies, output):
     plt.savefig(f"{output}/cdf.png")
     plt.close()
 
-def plot_stream(stream_name, latencies, sub_name, output):
-    plt.plot(range(len(latencies)), latencies)
+def plot_stream(stream_name, values, sub_name, output):
+    plt.plot(range(len(values)), values)
     plt.xscale("log")
     plt.xlabel("Samples value")
     plt.ylabel('Latency (µs)')
