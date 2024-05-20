@@ -6,10 +6,8 @@ import numpy as np
 
 ADOC_FILE_PATH = f"latency-tests-report.adoc"
 
-def compute_latency(pub, sub, output):
+def compute_latency(pub_sv, sub_sv, output):
     diff = []
-    pub_sv = extract_sv(pub)
-    sub_sv = extract_sv(sub)
     sv_drop = 0
     for index_sv in range(0, len(pub_sv)-1):
 
@@ -125,7 +123,9 @@ def generate_adoc(pub, sub, output):
                 image::{_output_}/latency_histogram_{_sub_name_}.png[]
                 """
         )
-        stream_name, latencies = compute_latency(pub, sub, output)
+        pub_sv = extract_sv(pub)
+        sub_sv = extract_sv(sub)
+        stream_name, latencies = compute_latency(pub_sv, sub_sv, output)
         filename = save_latency_histogram(latencies,sub_name,output)
         plot_stream(stream_name, latencies, sub_name, output)
         plot_cdf(latencies, output)
