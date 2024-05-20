@@ -135,6 +135,18 @@ def generate_adoc(pub, sub, output):
                 image::{_output_}/latency_histogram_{_sub_name_}.png[]
                 """
         )
+
+        pacing_block = textwrap.dedent(
+                """
+                == Pacing tests
+                |===
+                |Publisher minimum pacing |Publisher maximum pacing |Publisher average pacing
+                |{_pub_minpace_} us |{_pub_maxpace_} us |{_pub_avgpace_} us
+                |Subscriber minimum pacing |Subscriber maximum pacing |Subscriber average pacing
+                |{_sub_minpace_} us |{_sub_maxpace_} us |{_sub_avgpace_} us
+                """
+        )
+
         pub_sv = extract_sv(pub)
         sub_sv = extract_sv(sub)
         stream_name, latencies = compute_latency(pub_sv, sub_sv, output)
@@ -152,6 +164,18 @@ def generate_adoc(pub, sub, output):
                     _neglat_ = compute_neglat(latencies),
                     _size_ = compute_size(latencies),
                     _neg_percentage_ = np.round(compute_neglat(latencies) / compute_size(latencies),5) *100,
+                    _output_= filename
+                )
+        )
+
+        adoc_file.write(
+                pacing_block.format(
+                    _pub_minpace_= compute_min(pub_pacing),
+                    _pub_maxpace_= compute_max(pub_pacing),
+                    _pub_avgpace_= compute_average(pub_pacing),
+                    _sub_minpace_= compute_min(sub_pacing),
+                    _sub_maxpace_= compute_max(sub_pacing),
+                    _sub_avgpace_= compute_average(sub_pacing),
                     _output_= filename
                 )
         )
