@@ -119,6 +119,7 @@ def plot_stream(stream_name, plot_type, values, sub_name, output):
     plt.title('Stream: {}'.format(stream_name))
     plt.savefig(f"{output}/plot_{plot_type}_{sub_name}.png")
     print(f"Plot saved as 'plot_{plot_type}_{sub_name}.png'.")
+    plt.close()
 
 def generate_adoc(pub, sub, output):
     sub_name = sub.split("_")[4]
