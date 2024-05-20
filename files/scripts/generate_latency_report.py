@@ -6,6 +6,18 @@ import numpy as np
 
 ADOC_FILE_PATH = f"latency-tests-report.adoc"
 
+def compute_pacing(pub_sv, sub_sv):
+    pub_pacing = []
+    sub_pacing = []
+
+    pub_timestamps = [int(item.split(":")[2]) for item in pub_sv]
+    sub_timestamps = [int(item.split(":")[2]) for item in sub_sv]
+
+    pub_pacing = np.diff(pub_timestamps)
+    sub_pacing = np.diff(sub_timestamps)
+
+    return pub_pacing, sub_pacing
+
 def compute_latency(pub_sv, sub_sv, output):
     diff = []
     sv_drop = 0
