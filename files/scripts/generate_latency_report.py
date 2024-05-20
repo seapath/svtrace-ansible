@@ -75,21 +75,21 @@ def compute_neglat(values):
 def compute_size(values):
     return np.size(values)
 
-def save_histogram(values, sub_name, output):
+def save_histogram(plot_type, values, sub_name, output):
     # Plot latency histograms
     plt.hist(values, bins=20, alpha=0.7)
 
     # Add titles and legends
-    plt.xlabel("Latency (us)")
+    plt.xlabel(f"{plot_type} (us)")
     plt.ylabel("Frequency")
-    plt.title(f"Latency Histogram for {sub_name}")
+    plt.title(f"{plot_type} Histogram for {sub_name}")
 
     # Save the plot
     if not os.path.exists(output):
         os.makedirs(output)
-    filename = os.path.realpath(f"{output}/latency_histogram_{sub_name}.png")
+    filename = os.path.realpath(f"{output}/histogram_{plot_type}_{sub_name}.png")
     plt.savefig(filename)
-    print(f"Histogram saved as 'latency_histogram_{sub_name}.png'.")
+    print(f"Histogram saved as 'histogram_{plot_type}_{sub_name}.png'.")
     plt.close()
     return filename
 
@@ -111,14 +111,14 @@ def plot_cdf(values, output):
     plt.savefig(f"{output}/cdf.png")
     plt.close()
 
-def plot_stream(stream_name, values, sub_name, output):
+def plot_stream(stream_name, plot_type, values, sub_name, output):
     plt.plot(range(len(values)), values)
     plt.xscale("log")
     plt.xlabel("Samples value")
-    plt.ylabel('Latency (µs)')
+    plt.ylabel(f'{plot_type} (µs)')
     plt.title('Stream: {}'.format(stream_name))
-    plt.savefig(f"{output}/plot_{sub_name}.png")
-    print(f"Plot saved as 'plot_{sub_name}.png'.")
+    plt.savefig(f"{output}/plot_{plot_type}_{sub_name}.png")
+    print(f"Plot saved as 'plot_{plot_type}_{sub_name}.png'.")
 
 def generate_adoc(pub, sub, output):
     sub_name = sub.split("_")[4]
@@ -150,8 +150,8 @@ def generate_adoc(pub, sub, output):
         pub_sv = extract_sv(pub)
         sub_sv = extract_sv(sub)
         stream_name, latencies = compute_latency(pub_sv, sub_sv, output)
-        filename = save_latency_histogram(latencies,sub_name,output)
-        plot_stream(stream_name, latencies, sub_name, output)
+        filename = save_histogram("latency", latencies,sub_name,output)
+        plot_stream(stream_name,"latency", latencies, sub_name, output)
         plot_cdf(latencies, output)
 
         adoc_file.write(
