@@ -35,10 +35,8 @@ def extract_sv(sv_file_path):
         sv = sv_content.split("\n")[:-1]
     return sv
 
-def get_stream_count(output):
-    filename = os.path.join(output, f"diff_results")
-    data = np.genfromtxt(filename, delimiter=":", usecols=[0], dtype=str)
-    return np.unique(data).size
+def get_stream_count(pub_sv):
+    return np.unique(pub_sv).size
 
 def compute_min(values):
     return np.min(values) if values.size > 0 else None
