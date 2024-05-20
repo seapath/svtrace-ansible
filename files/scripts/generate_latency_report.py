@@ -18,34 +18,14 @@ def compute_pacing(pub_sv, sub_sv):
 
     return pub_pacing, sub_pacing
 
-def compute_latency(pub_sv, sub_sv, output):
-    diff = []
-    sv_drop = 0
-    for index_sv in range(0, len(pub_sv)-1):
+def compute_latency(pub_sv, sub_sv):
+    pub_sv_id = pub_sv[0]
+    pub_timestamps = np.array([int(item.split(":")[2]) for item in pub_sv])
+    sub_timestamps = np.array([int(item.split(":")[2]) for item in sub_sv])
 
-        pub_decomposed_sv = pub_sv[index_sv].split(":")
-        pub_sv_id = pub_decomposed_sv[0]
-        pub_sv_cnt = int(pub_decomposed_sv[1]) + sv_drop
-        pub_sv_timestamp = pub_decomposed_sv[2]
+    latencies = sub_timestamps - pub_timestamps
+    stream_name = pub_sv_id[0]
 
-        sub_decomposed_sv = sub_sv[index_sv].split(":")
-        sub_sv_cnt = int(sub_decomposed_sv[1])
-        sub_sv_timestamp = sub_decomposed_sv[2]
-
-        if pub_sv_cnt != sub_sv_cnt:
-            diff.append(f"SV DROPPED:{pub_sv_id}:{pub_sv_cnt}\n")
-        else:
-            latency = int(sub_sv_timestamp) - int(pub_sv_timestamp)
-            diff.append(f"{pub_sv_id}:{pub_sv_cnt}:{latency}\n")
-
-    with open(f"{output}/diff_results", "w", encoding="utf-8") as results_file:
-        for line in diff:
-            results_file.write(line)
-
-    # Read the differences file
-    filename = os.path.join(output, f"diff_results")
-    stream_name = np.genfromtxt(filename, delimiter=":", usecols=[0], dtype=str)[0]
-    latencies = np.genfromtxt(filename, delimiter=":", usecols=[2], dtype=int)
     return stream_name, latencies
 
 
@@ -150,7 +130,7 @@ def generate_adoc(pub, sub, output):
 
         pub_sv = extract_sv(pub)
         sub_sv = extract_sv(sub)
-        stream_name, latencies = compute_latency(pub_sv, sub_sv, output)
+        stream_name, latencies = compute_latency(pub_sv, sub_sv)
         pub_pacing, sub_pacing = compute_pacing(pub_sv, sub_sv)
 
         filename = save_histogram("latency", latencies,sub_name,output)
