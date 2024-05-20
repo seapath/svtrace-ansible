@@ -124,7 +124,7 @@ def generate_adoc(pub, sub, output):
     sub_name = sub.split("_")[4]
     with open(f"{output}/{ADOC_FILE_PATH}", "w", encoding="utf-8") as adoc_file:
         adoc_file.write("== Latency tests\n")
-        vm_line = textwrap.dedent(
+        latency_block = textwrap.dedent(
                 """
                 === Subscriber {_sub_name_} latency test on {_size_} samples value
                 |===
@@ -155,7 +155,7 @@ def generate_adoc(pub, sub, output):
         plot_cdf(latencies, output)
 
         adoc_file.write(
-                vm_line.format(
+                latency_block.format(
                     _sub_name_=sub_name,
                     _stream_= get_stream_count(output),
                     _minlat_= compute_min(latencies),
