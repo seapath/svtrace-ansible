@@ -150,9 +150,17 @@ def generate_adoc(pub, sub, output):
         pub_sv = extract_sv(pub)
         sub_sv = extract_sv(sub)
         stream_name, latencies = compute_latency(pub_sv, sub_sv, output)
+        pub_pacing, sub_pacing = compute_pacing(pub_sv, sub_sv)
+
         filename = save_histogram("latency", latencies,sub_name,output)
         plot_stream(stream_name,"latency", latencies, sub_name, output)
         plot_cdf(latencies, output)
+
+        save_histogram("pacing", pub_pacing,"publisher",output)
+        plot_stream(stream_name,"pacing", pub_pacing, "publisher", output)
+
+        save_histogram("pacing", sub_pacing,"subscriber",output)
+        plot_stream(stream_name,"pacing", sub_pacing, "subscriber", output)
 
         adoc_file.write(
                 latency_block.format(
