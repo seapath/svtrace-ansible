@@ -3,6 +3,10 @@
   hosts:
     localhost
   tasks:
+    - name: Create tests results directory
+      file:
+        path: ../tests_results
+        state: directory
     - name: Record start time of the test
       shell:
         cmd: >-
