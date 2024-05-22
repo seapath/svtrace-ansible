@@ -1,0 +1,46 @@
+BEGIN
+{
+  @sv_ether_proto = 47752;
+  @start = 0;
+  @lat_threshold = $1;
+}
+
+kprobe:tpacket_rcv
+{
+  $skb = (struct sk_buff *)arg0;
+  $data_sv_counter = $skb->head + $skb->mac_header;
+  $data_sv_counter += 51;
+  $sv_counter = 0;
+  $protocol = $skb->protocol;
+  if ($protocol == @sv_ether_proto) {
+
+    @start = nsecs(tai);
+    $data_sv_counter = $skb->head + $skb->mac_header;
+    $data_sv_counter += 51;
+
+    unroll(2) {
+      $sv_counter = ($sv_counter << 8) + *(uint8 *)$data_sv_counter;
+      $data_sv_counter += 1;
+    }
+
+    if($sv_counter != @old_sv_counter){
+      @old_sv_counter = $sv_counter;
+    }
+  }
+}
+
+kprobe:kfree_skbmem
+{
+  $skb = (struct sk_buff *)arg0;
+  $protocol = $skb->protocol;
+
+  if ($protocol == @sv_ether_proto) {
+    $ts = nsecs(tai);
+    $lat = ($ts - @start)/1000;
+
+    if ($lat > @lat_threshold){
+      printf("%-llu: SV %x latency %-lluus > %dus in %s (%s pid %d)\n", $ts,
+      @old_sv_counter, $lat, @lat_threshold, func, comm, pid);
+    }
+  }
+}
