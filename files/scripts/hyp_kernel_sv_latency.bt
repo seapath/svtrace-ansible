@@ -1,0 +1,74 @@
+BEGIN
+{
+  @sv_ether_proto = 47752;
+  @old_sv_counter = 1096;
+
+  @sv_irq_interface_pid = $1;
+  @vhost_pid = $2;
+  @lat_threshold = $3;
+  @start = 0;
+}
+
+kprobe:skb_push
+{
+  $skb = (struct sk_buff*)arg0;
+  $protocol = $skb->protocol;
+  $sv_counter = 0;
+
+  if ($protocol == @sv_ether_proto) {
+    if(pid == @sv_irq_interface_pid){
+      @start = nsecs(tai);
+      $data_sv_counter = $skb->head + $skb->mac_header;
+      $data_sv_counter += 51;
+
+      unroll(2) {
+        $sv_counter = ($sv_counter << 8) + *(uint8 *)$data_sv_counter;
+        $data_sv_counter += 1;
+      }
+
+      if($sv_counter != @old_sv_counter){
+        @old_sv_counter = $sv_counter;
+      }
+    }
+  }
+}
+
+kprobe:skb_clone,
+kprobe:skb_clone_tx_timestamp
+{
+  $skb = (struct sk_buff*)arg0;
+  $protocol = $skb->protocol;
+  $sv_counter = 0;
+
+  if ($protocol == @sv_ether_proto) {
+    $ts = nsecs(tai);
+    $lat = ($ts - @start)/1000;
+
+    if ($lat > @lat_threshold){
+      printf("%llu: SV %x latency %-lluus > %dus in %s (%s pid %d)\n", $ts,
+      @old_sv_counter, $lat, @lat_threshold, func, comm, pid);
+    }
+  }
+}
+
+kprobe:consume_skb,
+kprobe:kfree_skbmem
+{
+  $skb = (struct sk_buff*)arg0;
+  $protocol = $skb->protocol;
+  $sv_counter = 0;
+
+  if ($protocol == @sv_ether_proto) {
+
+      if(pid == @vhost_pid){
+        $ts = nsecs(tai);
+        $lat = ($ts - @start)/1000;
+
+        if ($lat > @lat_threshold){
+          printf("%llu: SV %x latency %-lluus > %dus in %s (%s pid %d)\n", $ts,
+          @old_sv_counter, $lat, @lat_threshold, func, comm, pid);
+        }
+    }
+  }
+
+}
