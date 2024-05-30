@@ -20,12 +20,6 @@
     - publisher
     - subscriber
   tasks:
-      - name: Send SV timestamp logger
-        copy:
-          src: ../files/sv_timestamp_logger.tar
-          dest: /tmp/sv_timestamp_logger.tar
-      - name: Load SV timestamp logger
-        command: docker image load -i /tmp/sv_timestamp_logger.tar
       - name : Run SV timestamp logger container
         command:
           docker run --privileged \
