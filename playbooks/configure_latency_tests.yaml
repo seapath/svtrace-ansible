@@ -5,6 +5,10 @@
     - publisher
     - hypervisors
   tasks:
+      - name: Disable kernel adresses exposition restriction
+        shell:
+          cmd: >-
+            echo 0 > /proc/sys/kernel/kptr_restrict
       - name: Send ptp4l configuration file
         copy:
           src: ../files/configuration/ptp4l.conf
@@ -42,6 +46,10 @@
   hosts:
     - subscriber
   tasks:
+      - name: Disable kernel adresses exposition restriction
+        shell:
+          cmd: >-
+            echo 0 > /proc/sys/kernel/kptr_restrict
       - name: Send phc2sys.service
         template:
           src: ../files/templates/vms_phc2sys.service.j2
