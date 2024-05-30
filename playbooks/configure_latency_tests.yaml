@@ -66,6 +66,10 @@
           dest: /tmp/bpftrace.tar
       - name: Load bpftrace
         command: docker image load -i /tmp/bpftrace.tar
+      - name: Send bpftrace script
+        copy:
+          src: ../files/scripts/{{ bpftrace_script }}.bt
+          dest: /tmp/record_kernel_sv_latency.bt
 
 - name: Prepare vms
   become: true
