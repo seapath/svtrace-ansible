@@ -54,6 +54,19 @@
       - name: Load SV timestamp logger
         command: docker image load -i /tmp/sv_timestamp_logger.tar
 
+- name: Configure bpftrace image
+  become: true
+  hosts:
+    - hypervisors
+    - subscriber
+  tasks:
+      - name: Send bpftrace
+        copy:
+          src: ../files/docker/bpftrace/bpftrace.tar
+          dest: /tmp/bpftrace.tar
+      - name: Load bpftrace
+        command: docker image load -i /tmp/bpftrace.tar
+
 - name: Prepare vms
   become: true
   hosts:
