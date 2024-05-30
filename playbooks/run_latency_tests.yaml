@@ -12,6 +12,43 @@
         cmd: >-
           echo Test started at $(echo `date +'%T'`) > ../tests_results/time
 
+- name: Launch bpftrace on hypervisors
+  become: true
+  hosts:
+    - hypervisors
+  tasks:
+      - name : Run bpftrace container
+        command:
+          docker run --privileged \
+          -d \
+          --name bpftrace \
+          --rm \
+          -v /sys/kernel/debug:/sys/kernel/debug:ro \
+          -v /tmp:/tmp \
+          -v /proc:/proc \
+          bpftrace \
+          /tmp/launch_bpftrace.sh hypervisors {{ latency_threshold }}
+
+- name: Launch bpftrace on subscriber
+  become: true
+  hosts:
+    - subscriber
+  tasks:
+      - name : Run bpftrace container
+        command:
+          docker run --privileged \
+          -d \
+          --name bpftrace \
+          --rm \
+          -v /sys/kernel/debug:/sys/kernel/debug:ro \
+          -v /tmp:/tmp \
+          -v /proc:/proc \
+          bpftrace \
+          /tmp/launch_bpftrace.sh subscriber {{ latency_threshold }}
+      - name: Make sure bpftrace has time to start
+        wait_for:
+          timeout: 5
+
 - name: Prepare publisher and receiver
   become: true
   vars:
@@ -73,6 +110,24 @@
           src: /tmp/{{ sv_file }}
           dest: ../tests_results/
           flat: true
+
+- name: Cleanup bpftrace
+  become: true
+  hosts:
+    - hypervisors
+    - subscriber
+  tasks:
+      - name: Extract bpftrace log
+        shell:
+          cmd: >-
+            docker logs bpftrace > /tmp/record_bpftrace_{{ inventory_hostname }}
+      - name: Fetch bpftrace log
+        fetch:
+          src: /tmp/record_bpftrace_{{ inventory_hostname }}
+          dest: ../tests_results/
+          flat: true
+      - name: Stop bpftrace container
+        command: docker stop bpftrace
 
 - name: Fetch logs
   become: true
