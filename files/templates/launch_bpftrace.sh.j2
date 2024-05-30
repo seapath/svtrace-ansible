@@ -1,0 +1,16 @@
+#!/bin/bash
+
+set -e
+
+DEV="$1"
+LAT_THRESHOLD="$2"
+
+if [ "$DEV" == "hypervisors" ]; then
+    IRQ_SV_PID="$(ps -eo comm,pid|grep "{{ sv_interface }}-T"|head -n1| awk '{print $2}')"
+    OVS_PID="$(ps -eo comm,pid|grep "ovs-vswitchd"| awk '{print $2}')"
+
+    ./bpftrace /tmp/record_kernel_sv_latency.bt $IRQ_SV_PID $OVS_PID $LAT_THRESHOLD
+
+elif [ "$DEV" == "subscriber" ]; then
+    ./bpftrace /tmp/record_kernel_sv_latency.bt $LAT_THRESHOLD
+fi
