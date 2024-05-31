@@ -13,8 +13,14 @@ def compute_pacing(pub_sv, sub_sv):
     pub_timestamps = [int(item.split(":")[2]) for item in pub_sv]
     sub_timestamps = [int(item.split(":")[2]) for item in sub_sv]
 
+    pub_sv_cnt = np.array([int(item.split(":")[1]) for item in pub_sv])
+    sub_sv_cnt = np.array([int(item.split(":")[1]) for item in sub_sv])
+
     pub_pacing = np.diff(pub_timestamps)
     sub_pacing = np.diff(sub_timestamps)
+
+    pub_pacing = np.stack((pub_sv_cnt[0:-1],pub_pacing))
+    sub_pacing = np.stack((sub_sv_cnt[0:-1],sub_pacing))
 
     return pub_pacing, sub_pacing
 
@@ -23,7 +29,11 @@ def compute_latency(pub_sv, sub_sv):
     pub_timestamps = np.array([int(item.split(":")[2]) for item in pub_sv])
     sub_timestamps = np.array([int(item.split(":")[2]) for item in sub_sv])
 
+    pub_sv_cnt = np.array([int(item.split(":")[1]) for item in pub_sv])
+    sub_sv_cnt = np.array([int(item.split(":")[1]) for item in sub_sv])
+
     latencies = sub_timestamps - pub_timestamps
+    latencies = np.stack((pub_sv_cnt,latencies))
     stream_name = pub_sv_id[0]
 
     return stream_name, latencies
@@ -135,26 +145,26 @@ def generate_adoc(pub, sub, output):
         stream_name, latencies = compute_latency(pub_sv, sub_sv)
         pub_pacing, sub_pacing = compute_pacing(pub_sv, sub_sv)
 
-        filename = save_histogram("latency", latencies,sub_name,output)
-        plot_stream(stream_name,"latency", latencies, sub_name, output)
-        plot_cdf(latencies, output)
+        filename = save_histogram("latency", latencies[1],sub_name,output)
+        plot_stream(stream_name,"latency", latencies[1], sub_name, output)
+        plot_cdf(latencies[1], output)
 
-        save_histogram("pacing", pub_pacing,"publisher",output)
-        plot_stream(stream_name,"pacing", pub_pacing, "publisher", output)
+        save_histogram("pacing", pub_pacing[1],"publisher",output)
+        plot_stream(stream_name,"pacing", pub_pacing[1], "publisher", output)
 
-        save_histogram("pacing", sub_pacing,"subscriber",output)
-        plot_stream(stream_name,"pacing", sub_pacing, "subscriber", output)
+        save_histogram("pacing", sub_pacing[1],"subscriber",output)
+        plot_stream(stream_name,"pacing", sub_pacing[1], "subscriber", output)
 
         adoc_file.write(
                 latency_block.format(
                     _sub_name_=sub_name,
                     _stream_= get_stream_count(output),
-                    _minlat_= compute_min(latencies),
-                    _maxlat_= compute_max(latencies),
-                    _avglat_= compute_average(latencies),
-                    _neglat_ = compute_neglat(latencies),
-                    _size_ = compute_size(latencies),
-                    _neg_percentage_ = np.round(compute_neglat(latencies) / compute_size(latencies),5) *100,
+                    _minlat_= compute_min(latencies[1]),
+                    _maxlat_= compute_max(latencies[1]),
+                    _avglat_= compute_average(latencies[1]),
+                    _neglat_ = compute_neglat(latencies[1]),
+                    _size_ = compute_size(latencies[1]),
+                    _neg_percentage_ = np.round(compute_neglat(latencies[1]) / compute_size(latencies[1]),5) *100,
                     _output_= filename,
                     _lat_100_ = compute_lat_threshold(latencies, 100)
                 )
@@ -162,12 +172,12 @@ def generate_adoc(pub, sub, output):
 
         adoc_file.write(
                 pacing_block.format(
-                    _pub_minpace_= compute_min(pub_pacing),
-                    _pub_maxpace_= compute_max(pub_pacing),
-                    _pub_avgpace_= compute_average(pub_pacing),
-                    _sub_minpace_= compute_min(sub_pacing),
-                    _sub_maxpace_= compute_max(sub_pacing),
-                    _sub_avgpace_= compute_average(sub_pacing),
+                    _pub_minpace_= compute_min(pub_pacing[1]),
+                    _pub_maxpace_= compute_max(pub_pacing[1]),
+                    _pub_avgpace_= compute_average(pub_pacing[1]),
+                    _sub_minpace_= compute_min(sub_pacing[1]),
+                    _sub_maxpace_= compute_max(sub_pacing[1]),
+                    _sub_avgpace_= compute_average(sub_pacing[1]),
                     _output_= filename
                 )
         )
