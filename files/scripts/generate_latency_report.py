@@ -61,7 +61,13 @@ def compute_neglat(values):
     return np.count_nonzero(values < 0)
 
 def compute_lat_threshold(values, threshold):
-    return np.count_nonzero(values > threshold)
+    indices_exceeding_threshold = np.where(values[1] > threshold)[0]
+    return indices_exceeding_threshold
+
+def save_sv_lat_threshold(data_type, sv, indices_exceeding_threshold, output):
+    with open(f"{output}/sv_{data_type}_exceed", "w", encoding="utf-8") as sv_lat_exceed_file:
+        for exceeding_lat in indices_exceeding_threshold:
+            sv_lat_exceed_file.write(f"SV {sv[0][exceeding_lat]} {data_type} exceed: {sv[1][exceeding_lat]}us\n")
 
 def compute_size(values):
     return np.size(values)
@@ -144,6 +150,13 @@ def generate_adoc(pub, sub, output):
         sub_sv = extract_sv(sub)
         stream_name, latencies = compute_latency(pub_sv, sub_sv)
         pub_pacing, sub_pacing = compute_pacing(pub_sv, sub_sv)
+        lat_exceeding_threshold = compute_lat_threshold(latencies, 100)
+        pub_pacing_exceeding_threshold = compute_lat_threshold(pub_pacing, 500)
+        sub_pacing_exceeding_threshold = compute_lat_threshold(sub_pacing, 500)
+
+        save_sv_lat_threshold("latency", latencies, lat_exceeding_threshold, output)
+        save_sv_lat_threshold("publisher pacing", pub_pacing, pub_pacing_exceeding_threshold, output)
+        save_sv_lat_threshold("subscriber pacing", sub_pacing, sub_pacing_exceeding_threshold, output)
 
         filename = save_histogram("latency", latencies[1],sub_name,output)
         plot_stream(stream_name,"latency", latencies[1], sub_name, output)
@@ -166,7 +179,7 @@ def generate_adoc(pub, sub, output):
                     _size_ = compute_size(latencies[1]),
                     _neg_percentage_ = np.round(compute_neglat(latencies[1]) / compute_size(latencies[1]),5) *100,
                     _output_= filename,
-                    _lat_100_ = compute_lat_threshold(latencies, 100)
+                    _lat_100_ = len(lat_exceeding_threshold)
                 )
         )
 
