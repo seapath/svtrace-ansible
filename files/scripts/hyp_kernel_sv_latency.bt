@@ -51,8 +51,7 @@ kprobe:skb_clone_tx_timestamp
   }
 }
 
-kprobe:consume_skb,
-kprobe:kfree_skbmem
+kprobe:consume_skb
 {
   $skb = (struct sk_buff*)arg0;
   $protocol = $skb->protocol;
