@@ -118,6 +118,31 @@ def plot_stream(stream_name, plot_type, values, sub_name, output):
     print(f"Plot saved as 'plot_{plot_type}_{sub_name}.png'.")
     plt.close()
 
+def percentage_hist(values, sub_name, output):
+    max_value = max(values)
+    bin_width = 100
+    bins = np.arange(0, max_value + bin_width, bin_width)
+
+    hist, bin_edges = np.histogram(values, bins=bins)
+    percentages = (hist / len(values)) * 100
+
+    bin_labels = [f'{int(bins[i])}-{int(bins[i+1])}' for i in range(len(bins)-1)]
+
+    plt.figure(figsize=(10, 6))
+    bars = plt.bar(bin_labels, percentages, color='skyblue')
+
+    for bar, percentage in zip(bars, percentages):
+        height = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width() / 2.0, height, f'{percentage:.2f}%', ha='center', va='bottom')
+
+    plt.xlabel('Latency (µs)')
+    plt.ylabel('Percentage')
+    plt.title(f'Percentage distribution of {sub_name} latencies')
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.savefig(f"{output}/percentage_hist_{sub_name}.png")
+    plt.close()
+
 def generate_adoc(pub, sub, output):
     sub_name = sub.split("_")[4]
     with open(f"{output}/{ADOC_FILE_PATH}", "w", encoding="utf-8") as adoc_file:
@@ -167,6 +192,8 @@ def generate_adoc(pub, sub, output):
 
         save_histogram("pacing", sub_pacing[1],"subscriber",output)
         plot_stream(stream_name,"pacing", sub_pacing[1], "subscriber", output)
+        percentage_hist(sub_pacing[1],"subscriber",output)
+        percentage_hist(pub_pacing[1],"publisher",output)
 
         adoc_file.write(
                 latency_block.format(
