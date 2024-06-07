@@ -29,7 +29,7 @@ kprobe:tpacket_rcv
   }
 }
 
-kprobe:kfree_skbmem
+kprobe:tpacket_get_timestamp
 {
   $skb = (struct sk_buff *)arg0;
   $protocol = $skb->protocol;
