@@ -78,8 +78,6 @@
   become: true
   hosts:
     publisher
-  vars:
-    - pcap_file: Df_Tri_Z1
   tasks:
       - name: Send SV
         command: chrt --fifo 1 taskset -c 4 bittwist -i {{ sv_interface }} /pcap/{{ pcap_file }}.pcap -l {{ pcap_cycles }}
