@@ -24,6 +24,15 @@ def compute_pacing(pub_sv, sub_sv):
 
     return pub_pacing, sub_pacing
 
+def detect_sv_drop(sv_counter):
+    diffs = np.diff(sv_counter)
+    diffs = diffs - 1
+    discontinuities = np.where(diffs > 0)
+
+    if discontinuities[0].size > 0:
+        discontinuities = np.stack((sv_counter[:-1],diffs))
+    return discontinuities
+
 def compute_latency(pub_sv, sub_sv):
     pub_sv_id = pub_sv[0]
     pub_timestamps = np.array([int(item.split(":")[2]) for item in pub_sv])
@@ -32,9 +41,25 @@ def compute_latency(pub_sv, sub_sv):
     pub_sv_cnt = np.array([int(item.split(":")[1]) for item in pub_sv])
     sub_sv_cnt = np.array([int(item.split(":")[1]) for item in sub_sv])
 
+    # Detect discontinuities
+    pub_discontinuities = detect_sv_drop(pub_sv_cnt)
+    sub_discontinuities = detect_sv_drop(sub_sv_cnt)
+
+    if sub_discontinuities[0].size > 0:
+        sv_discontinuities = np.where(sub_discontinuities[1] > 0)
+
+        for sv_discontinuity in sv_discontinuities[0]:
+            sv_dropped = sub_discontinuities[1][sv_discontinuity]
+
+            for sv in range(0, sv_dropped):
+                print(f"Warning: SV {pub_sv_cnt[sv_discontinuity+1]} dropped in subscriber data")
+                pub_timestamps = np.delete(pub_timestamps,sv_discontinuity+1)
+                pub_sv_cnt = np.delete(pub_sv_cnt,sv_discontinuity+1)
+
     latencies = sub_timestamps - pub_timestamps
     latencies = np.stack((pub_sv_cnt,latencies))
-    stream_name = pub_sv_id[0]
+
+    stream_name = pub_sv_id.split(":")[0]
 
     return stream_name, latencies
 
