@@ -1,0 +1,8 @@
+This directory must contains bpftrace Docker archive.
+
+To do so, run the following commands:
+
+```bash
+docker build --tag bpftrace .
+docker save -o bpftrace.tar bpftrace
+```
