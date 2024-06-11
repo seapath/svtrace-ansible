@@ -1,0 +1,12 @@
+
+# Inventories directory
+This directory contains the inventory files used to configure the
+machines used in a Fromveur project.
+
+## Common inventory
+This file contains the common variables between publisher, subscriber and
+hypervisor machines.
+
+## Subscriber inventory
+This file must contains the variables specific for a
+subscriber machine.
