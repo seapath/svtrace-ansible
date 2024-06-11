@@ -26,4 +26,4 @@ all:
                             sv_ts_core:  # sv_timestamp_logger CPU core
                             bpftrace_script: # BPFtrace script to be run
                             subscriber_latency_threshold: 1 # # Threshold of the Tsub latency
-                            ptp_configuration: # Remove this var to disable ptp configuration
+                            ptp_manual_configuration: # Remove this var to disable ptp configuration

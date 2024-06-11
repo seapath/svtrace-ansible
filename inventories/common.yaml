@@ -23,7 +23,7 @@ all:
                             ptp_core: # ptp4l CPU core
                             phc_core: # phc2sys CPU core
                             ptp_device: # PTP device synchronized by ptp4l
-                            ptp_configuration: # Remove this var to disable ptp configuration
+                            ptp_manual_configuration: # Remove this var to disable ptp configuration
 
                             sv_interface:  # SV emission interface
                             bpftrace_script: # BPFtrace script to be run
@@ -57,4 +57,4 @@ all:
                             sv_ts_core: # sv_timestamp_logger CPU core
                             pcap_file: # Path of the PCAP file to be used
                             bittwist_core: # bittwist CPU core
-                            ptp_manual_configuration: # Remove this var to disable ptp configuration
+                            ptp_manual_configuration: # Set to false to disable ptp configuration

@@ -15,18 +15,21 @@
           dest: /etc/ptp4l.conf
         notify:
           Enable ptp4l.service
+        when: ptp_manual_configuration is defined and ptp_manual_configuration|bool == true
       - name: Send ptp4l.service
         template:
           src: ../files/templates/ptp4l.service.j2
           dest: /etc/systemd/system/ptp4l.service
         notify:
           Enable ptp4l.service
+        when: ptp_manual_configuration is defined and ptp_manual_configuration|bool == true
       - name: Send phc2sys.service
         template:
           src: ../files/templates/phc2sys.service.j2
           dest: /etc/systemd/system/phc2sys.service
         notify:
           Enable phc2sys.service
+        when: ptp_manual_configuration is defined and ptp_manual_configuration|bool == true
   handlers:
       - name: Enable ptp4l.service
         ansible.builtin.systemd:
@@ -91,6 +94,7 @@
           dest: /etc/systemd/system/phc2sys.service
         notify:
           - Enable phc2sys.service
+        when: ptp_manual_configuration is defined and ptp_manual_configuration|bool == true
   handlers:
       - name: Enable phc2sys.service
         ansible.builtin.systemd:

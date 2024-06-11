@@ -108,7 +108,7 @@ systemctl disable timemaster.service
 
 3. PTP variables are correctly configured in your Seapath performance tool inventories
 files; See README file in `inventories/` directory. In particular, make
-sure ptp_configuration is defined.
+sure `ptp_manual_configuration` is defined.
 4. Finally, you can run the playbook `configure_latency_tests.yaml` using:
 ```bash
 cqfd -b configure_tests
