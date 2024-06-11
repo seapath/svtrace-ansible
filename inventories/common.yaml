@@ -1,0 +1,60 @@
+---
+all:
+    children:
+        standalone_machine:
+            children:
+                hypervisors:
+                    hosts:
+                        hypervisor_name: # Change as desired
+                            # Ansible variables
+                            ansible_host:
+                            ansible_user:
+                            ansible_python_interpreter: /usr/bin/python3
+                            ansible_connection: ssh
+                            ansible_ssh_private_key_file:
+                            ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+                            ansible_remote_tmp: /tmp/.ansible/tmp
+
+                            # Main network configuration
+                            network_interface:
+
+                            # PTP configuration
+                            ptp_interface: # PTP interface
+                            ptp_core: # ptp4l CPU core
+                            phc_core: # phc2sys CPU core
+                            ptp_device: # PTP device synchronized by ptp4l
+                            ptp_configuration: # Remove this var to disable ptp configuration
+
+                            sv_interface:  # SV emission interface
+                            bpftrace_script: # BPFtrace script to be run
+                            hypervisor_threshold_latency: 100 # Threshold of the Thyp latency
+
+                publisher:
+                    hosts:
+                        publisher_name: # Change as desired
+                            # Ansible variables
+                            ansible_host:
+                            ansible_user:
+                            ansible_python_interpreter: /usr/bin/python3
+                            ansible_connection: ssh
+                            ansible_ssh_private_key_file:
+                            ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+                            ansible_remote_tmp: /tmp/.ansible/tmp
+
+                            # Main network configuration
+                            network_interface:
+
+                            # PTP configuration
+                            ptp_interface: # PTP interface
+                            ptp_core: # ptp4l CPU core
+                            phc_core: # phc2sys CPU core
+                            ptp_device: # PTP device synchronized by ptp4l
+
+                            sv_interface: # SV reception interface
+
+                            pcap_cycles: 10 # Number of PCAP loops to repeat
+                            sv_file: # sv_timestamp_logger output file name result
+                            sv_ts_core: # sv_timestamp_logger CPU core
+                            pcap_file: # Path of the PCAP file to be used
+                            bittwist_core: # bittwist CPU core
+                            ptp_manual_configuration: # Remove this var to disable ptp configuration
