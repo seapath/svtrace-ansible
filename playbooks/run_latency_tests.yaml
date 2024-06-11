@@ -27,7 +27,7 @@
           -v /tmp:/tmp \
           -v /proc:/proc \
           bpftrace \
-          /tmp/launch_bpftrace.sh hypervisors {{ latency_threshold }}
+          /tmp/launch_bpftrace.sh hypervisors {{ hypervisor_latency_threshold }}
 
 - name: Launch bpftrace on subscriber
   become: true
@@ -44,7 +44,7 @@
           -v /tmp:/tmp \
           -v /proc:/proc \
           bpftrace \
-          /tmp/launch_bpftrace.sh subscriber {{ latency_threshold }}
+          /tmp/launch_bpftrace.sh subscriber {{ subscriber_latency_threshold }}
       - name: Make sure bpftrace has time to start
         wait_for:
           timeout: 5
