@@ -49,7 +49,7 @@
   tasks:
       - name: Send SV timestamp logger
         copy:
-          src: ../files/sv_timestamp_logger.tar
+          src: ../files/docker/sv_timestamp_logger/sv_timestamp_logger.tar
           dest: /tmp/sv_timestamp_logger.tar
       - name: Load SV timestamp logger
         command: docker image load -i /tmp/sv_timestamp_logger.tar
