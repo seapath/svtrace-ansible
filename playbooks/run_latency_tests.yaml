@@ -104,10 +104,10 @@
         command:
           docker rm sv_timestamp_logger
       - name: Fetch SV timestamps
-        fetch:
+        synchronize:
           src: /tmp/{{ sv_file }}
-          dest: ../tests_results/
-          flat: true
+          dest: ../tests_results/data/
+          mode: pull
 
 - name: Cleanup bpftrace
   become: true

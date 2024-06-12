@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 	locales \
 	python3 \
 	python3-pip \
+	rsync \
 	yamllint
 
 RUN pip3 install \
