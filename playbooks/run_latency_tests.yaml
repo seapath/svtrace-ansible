@@ -28,7 +28,7 @@
           -v /proc:/proc \
           bpftrace \
           /tmp/launch_bpftrace.sh hypervisors {{ hypervisor_latency_threshold }}
-
+        when: enable_bpftrace is defined and enable_bpftrace|bool == true
 - name: Launch bpftrace on subscriber
   become: true
   hosts:
@@ -48,7 +48,7 @@
       - name: Make sure bpftrace has time to start
         wait_for:
           timeout: 5
-
+        when: enable_bpftrace is defined and enable_bpftrace|bool == true
 - name: Prepare publisher and receiver
   become: true
   vars:
@@ -119,13 +119,16 @@
         shell:
           cmd: >-
             docker logs bpftrace > /tmp/record_bpftrace_{{ inventory_hostname }}
+        when: enable_bpftrace is defined and enable_bpftrace|bool == true
       - name: Fetch bpftrace log
         fetch:
           src: /tmp/record_bpftrace_{{ inventory_hostname }}
-          dest: ../tests_results/
+          dest: ../tests_results/latency/
           flat: true
+        when: enable_bpftrace is defined and enable_bpftrace|bool == true
       - name: Stop bpftrace container
         command: docker stop bpftrace
+        when: enable_bpftrace is defined and enable_bpftrace|bool == true
 
 - name: Fetch logs
   become: true
