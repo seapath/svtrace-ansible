@@ -39,7 +39,7 @@ kprobe:tpacket_get_timestamp
     $lat = ($ts - @start)/1000;
 
     if ($lat > @lat_threshold){
-      printf("T4:%-llu SV %x latency %-lluus > %dus in %s (%s pid %d)\n", $ts,
+      printf("T4:%-llu SV %d latency %-lluus > %dus in %s (%s pid %d)\n", $ts,
       @old_sv_counter, $lat, @lat_threshold, func, comm, pid);
     }
   }
