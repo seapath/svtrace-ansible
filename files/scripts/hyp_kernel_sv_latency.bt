@@ -64,7 +64,7 @@ kprobe:consume_skb
         $lat = ($ts - @start)/1000;
 
         if ($lat > @lat_threshold){
-          printf("%llu: SV %x latency %-lluus > %dus in %s (%s pid %d)\n", $ts,
+          printf("T2:%llu: SV %x latency %-lluus > %dus in %s (%s pid %d)\n", $ts,
           @old_sv_counter, $lat, @lat_threshold, func, comm, pid);
         }
     }
