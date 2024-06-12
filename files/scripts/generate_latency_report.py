@@ -7,23 +7,8 @@ import numpy as np
 ADOC_FILE_PATH = f"latency-tests-report.adoc"
 
 def compute_pacing(pub_sv, sub_sv):
-    pub_pacing = []
-    sub_pacing = []
-
-    pub_timestamps = [int(item.split(":")[3]) for item in pub_sv]
-    sub_timestamps = [int(item.split(":")[3]) for item in sub_sv]
-
-    pub_sv_cnt = np.array([int(item.split(":")[2]) for item in pub_sv])
-    sub_sv_cnt = np.array([int(item.split(":")[2]) for item in sub_sv])
-
-    pub_sv_iteration = np.array([int(item.split(":")[0]) for item in pub_sv])
-    sub_sv_iteration = np.array([int(item.split(":")[0]) for item in sub_sv])
-
-    pub_pacing = np.diff(pub_timestamps)
-    sub_pacing = np.diff(sub_timestamps)
-
-    pub_pacing = np.stack((pub_sv_iteration[0:-1],pub_sv_cnt[0:-1],pub_pacing))
-    sub_pacing = np.stack((sub_sv_iteration[0:-1],sub_sv_cnt[0:-1],sub_pacing))
+    pub_pacing = np.diff(pub_sv[3])
+    sub_pacing = np.diff(sub_sv[3])
 
     return pub_pacing, sub_pacing
 
@@ -37,21 +22,12 @@ def detect_sv_drop(sv_counter):
     return discontinuities
 
 def compute_latency(pub_sv, sub_sv):
-    pub_sv_id = pub_sv[0]
-    pub_timestamps = np.array([int(item.split(":")[3]) for item in pub_sv])
-    sub_timestamps = np.array([int(item.split(":")[3]) for item in sub_sv])
-
-    pub_sv_cnt = np.array([int(item.split(":")[2]) for item in pub_sv])
-    sub_sv_cnt = np.array([int(item.split(":")[2]) for item in sub_sv])
-
-    pub_sv_iteration = np.array([int(item.split(":")[0]) for item in pub_sv])
-
     # Detect discontinuities
-    pub_discontinuities = detect_sv_drop(pub_sv_cnt)
-    sub_discontinuities = detect_sv_drop(sub_sv_cnt)
+    pub_discontinuities = detect_sv_drop(pub_sv[2])
+    sub_discontinuities = detect_sv_drop(sub_sv[2])
 
     if sub_discontinuities[0].size > 0:
-        sv_discontinuities = np.where(sub_discontinuities[1] > 0)
+        sv_discontinuities = np.where(sub_discontinuities[2] > 0)
 
         for sv_discontinuity in sv_discontinuities[0]:
             sv_dropped = sub_discontinuities[1][sv_discontinuity]
@@ -61,18 +37,25 @@ def compute_latency(pub_sv, sub_sv):
                 pub_timestamps = np.delete(pub_timestamps,sv_discontinuity+1)
                 pub_sv_cnt = np.delete(pub_sv_cnt,sv_discontinuity+1)
 
-    latencies = sub_timestamps - pub_timestamps
-    latencies = np.stack((pub_sv_iteration,pub_sv_cnt,latencies))
+    latencies = sub_sv[3] - pub_sv[3]
 
-    stream_name = pub_sv_id.split(":")[0]
+    stream_name = pub_sv[0][0]
 
     return stream_name, latencies
 
 
 def extract_sv(sv_file_path):
+
     with open(f"{sv_file_path}", "r", encoding="utf-8") as sv_file:
-        sv_content = sv_file.read()
-        sv = sv_content.split("\n")[:-1]
+        sv_content = sv_file.read().splitlines()
+
+    sv_it = np.array([str(item.split(":")[0]) for item in sv_content])
+    sv_id = np.array([str(item.split(":")[1]) for item in sv_content])
+    sv_cnt = np.array([int(item.split(":")[2]) for item in sv_content])
+    sv_timestamps = np.array([int(item.split(":")[3]) for item in sv_content])
+
+    sv = [sv_it, sv_id, sv_cnt, sv_timestamps]
+
     return sv
 
 def get_stream_count(pub_sv):
@@ -91,13 +74,13 @@ def compute_neglat(values):
     return np.count_nonzero(values < 0)
 
 def compute_lat_threshold(values, threshold):
-    indices_exceeding_threshold = np.where(values[2] > threshold)[0]
+    indices_exceeding_threshold = np.where(values > threshold)[0]
     return indices_exceeding_threshold
 
-def save_sv_lat_threshold(data_type, sv, indices_exceeding_threshold, output):
+def save_sv_lat_threshold(data_type, latency, sv, indices_exceeding_threshold, output):
     with open(f"{output}/sv_{data_type}_exceed", "w", encoding="utf-8") as sv_lat_exceed_file:
         for exceeding_lat in indices_exceeding_threshold:
-            sv_lat_exceed_file.write(f"SV {sv[1][exceeding_lat]} iteration {sv[0][exceeding_lat]} {data_type} exceed: {sv[2][exceeding_lat]}us\n")
+            sv_lat_exceed_file.write(f"SV {sv[2][exceeding_lat]} iteration {sv[0][exceeding_lat]} {data_type} exceed: {latency[exceeding_lat]}us\n")
 
 def compute_size(values):
     return np.size(values)
@@ -131,24 +114,26 @@ def plot_cdf(values, output):
     plt.plot(cumulative_percentage, sorted_latency, linestyle='-', marker="x", linewidth=1)
     plt.ylabel('Latency (µs)')
     plt.xlabel('Cumulative Percentage (%)')
-    plt.title('Cumulative Distribution Function (CDF) of Latency')
+    plt.title('Cumulative Distribution Function (CDF) of total latency')
 
 
     plt.grid(True)
     plt.savefig(f"{output}/cdf.png")
     plt.close()
 
-def plot_stream(stream_name, plot_type, values, sub_name, output):
+def plot_stream(stream_name, plot_type, values, lat_name, output):
     plt.plot(range(len(values)), values)
     plt.xscale("log")
     plt.xlabel("Samples value")
     plt.ylabel(f'{plot_type} (µs)')
     plt.title('Stream: {}'.format(stream_name))
-    plt.savefig(f"{output}/plot_{plot_type}_{sub_name}.png")
-    print(f"Plot saved as 'plot_{plot_type}_{sub_name}.png'.")
+
+    lat_name = lat_name.replace(" ", "_")
+    plt.savefig(f"{output}/plot_{plot_type}_{lat_name}.png")
+    print(f"Plot saved as 'plot_{plot_type}_{lat_name}.png'.")
     plt.close()
 
-def percentage_hist(values, sub_name, output):
+def percentage_hist(values, lat_name, output):
     max_value = max(values)
     bin_width = 100
     bins = np.arange(0, max_value + bin_width, bin_width)
@@ -167,13 +152,13 @@ def percentage_hist(values, sub_name, output):
 
     plt.xlabel('Latency (µs)')
     plt.ylabel('Percentage')
-    plt.title(f'Percentage distribution of {sub_name} latencies')
+    plt.title(f'Percentage distribution of {lat_name} latencies')
     plt.xticks(rotation=45)
     plt.tight_layout()
-    plt.savefig(f"{output}/percentage_hist_{sub_name}.png")
+    plt.savefig(f"{output}/percentage_hist_{lat_name}.png")
     plt.close()
 
-def generate_adoc(pub, sub, output):
+def generate_adoc(pub, sub, output, ttot):
     sub_name = sub.split("_")[4]
     with open(f"{output}/{ADOC_FILE_PATH}", "w", encoding="utf-8") as adoc_file:
         adoc_file.write("== Latency tests\n")
@@ -205,49 +190,49 @@ def generate_adoc(pub, sub, output):
         sub_sv = extract_sv(sub)
         stream_name, latencies = compute_latency(pub_sv, sub_sv)
         pub_pacing, sub_pacing = compute_pacing(pub_sv, sub_sv)
-        lat_exceeding_threshold = compute_lat_threshold(latencies, 100)
-        pub_pacing_exceeding_threshold = compute_lat_threshold(pub_pacing, 500)
-        sub_pacing_exceeding_threshold = compute_lat_threshold(sub_pacing, 500)
+        total_lat_exceeding_threshold = compute_lat_threshold(latencies, ttot)
+        pub_pacing_exceeding_threshold = compute_lat_threshold(pub_pacing, 280)
+        sub_pacing_exceeding_threshold = compute_lat_threshold(sub_pacing, 280)
 
-        save_sv_lat_threshold("latency", latencies, lat_exceeding_threshold, output)
-        save_sv_lat_threshold("publisher pacing", pub_pacing, pub_pacing_exceeding_threshold, output)
-        save_sv_lat_threshold("subscriber pacing", sub_pacing, sub_pacing_exceeding_threshold, output)
+        save_sv_lat_threshold("total latency", latencies, pub_sv,  total_lat_exceeding_threshold, output)
+        save_sv_lat_threshold("publisher pacing", pub_pacing, pub_sv, pub_pacing_exceeding_threshold, output)
+        save_sv_lat_threshold("subscriber pacing", sub_pacing, sub_sv, sub_pacing_exceeding_threshold, output)
 
-        filename = save_histogram("latency", latencies[2],sub_name,output)
-        plot_stream(stream_name,"latency", latencies[2], sub_name, output)
-        plot_cdf(latencies[2], output)
+        filename = save_histogram("latency", latencies,"total latency",output)
+        plot_stream(stream_name,"latency", latencies, "total latency", output)
+        plot_cdf(latencies, output)
 
-        save_histogram("pacing", pub_pacing[2],"publisher",output)
-        plot_stream(stream_name,"pacing", pub_pacing[2], "publisher", output)
+        save_histogram("Pacing", pub_pacing,"publisher",output)
+        plot_stream(stream_name,"Pacing", pub_pacing, "publisher", output)
 
-        save_histogram("pacing", sub_pacing[2],"subscriber",output)
-        plot_stream(stream_name,"pacing", sub_pacing[2], "subscriber", output)
-        percentage_hist(sub_pacing[2],"subscriber",output)
-        percentage_hist(pub_pacing[2],"publisher",output)
+        save_histogram("Pacing", sub_pacing,"subscriber",output)
+        plot_stream(stream_name,"Pacing", sub_pacing, "subscriber", output)
+        percentage_hist(sub_pacing,"subscriber",output)
+        percentage_hist(pub_pacing,"publisher",output)
 
         adoc_file.write(
                 latency_block.format(
                     _sub_name_=sub_name,
                     _stream_= get_stream_count(output),
-                    _minlat_= compute_min(latencies[2]),
-                    _maxlat_= compute_max(latencies[2]),
-                    _avglat_= compute_average(latencies[2]),
-                    _neglat_ = compute_neglat(latencies[2]),
-                    _size_ = compute_size(latencies[2]),
-                    _neg_percentage_ = np.round(compute_neglat(latencies[2]) / compute_size(latencies[2]),5) *100,
+                    _minlat_= compute_min(latencies),
+                    _maxlat_= compute_max(latencies),
+                    _avglat_= compute_average(latencies),
+                    _neglat_ = compute_neglat(latencies),
+                    _size_ = compute_size(latencies),
+                    _neg_percentage_ = np.round(compute_neglat(latencies) / compute_size(latencies),5) *100,
                     _output_= filename,
-                    _lat_100_ = len(lat_exceeding_threshold)
+                    _lat_100_ = len(total_lat_exceeding_threshold)
                 )
         )
 
         adoc_file.write(
                 pacing_block.format(
-                    _pub_minpace_= compute_min(pub_pacing[2]),
-                    _pub_maxpace_= compute_max(pub_pacing[2]),
-                    _pub_avgpace_= compute_average(pub_pacing[2]),
-                    _sub_minpace_= compute_min(sub_pacing[2]),
-                    _sub_maxpace_= compute_max(sub_pacing[2]),
-                    _sub_avgpace_= compute_average(sub_pacing[2]),
+                    _pub_minpace_= compute_min(pub_pacing),
+                    _pub_maxpace_= compute_max(pub_pacing),
+                    _pub_avgpace_= compute_average(pub_pacing),
+                    _sub_minpace_= compute_min(sub_pacing),
+                    _sub_maxpace_= compute_max(sub_pacing),
+                    _sub_avgpace_= compute_average(sub_pacing),
                     _output_= filename
                 )
         )
@@ -256,6 +241,7 @@ if __name__ == "__main__":
     parser.add_argument("--pub", "-p", type=str, required=True, help="SV publisher file")
     parser.add_argument("--sub", "-s", type=str, required=True, help="SV subscriber file")
     parser.add_argument("--output", "-o", default="../results/", type=str, help="Output directory for the generated files.")
+    parser.add_argument("--ttot", default=100, type=int, help="Total latency threshold.")
 
     args = parser.parse_args()
-    generate_adoc(args.pub, args.sub, args.output)
+    generate_adoc(args.pub, args.sub, args.output, args.ttot)
