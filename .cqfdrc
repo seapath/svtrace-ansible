@@ -4,3 +4,10 @@ name='inventories'
 
 [build]
 command='check_yaml'
+flavors='configure_tests run_tests'
+
+[configure_tests]
+command='ansible-playbook -i inventories/common.yaml -i inventories/subscriber.yaml playbooks/configure_latency_tests.yaml'
+
+[run_tests]
+command='ansible-playbook -i inventories/common.yaml -i inventories/subscriber.yaml playbooks/run_latency_tests.yaml'
