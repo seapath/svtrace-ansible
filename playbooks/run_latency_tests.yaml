@@ -7,10 +7,19 @@
       file:
         path: ../tests_results
         state: directory
+    - name: Create tests results sub directory
+      file:
+        path: ../tests_results/{{ item }}
+        state: directory
+      with_items:
+        - pacing
+        - ptp
+        - latency
+        - data
     - name: Record start time of the test
       shell:
         cmd: >-
-          echo Test started at $(echo `date +'%T'`) > ../tests_results/time
+          echo Test started at $(echo `date +'%T'`) > ../tests_results/data/time
 
 - name: Launch bpftrace on hypervisors
   become: true
@@ -98,7 +107,7 @@
       - name: Fetch sv drop
         fetch:
           src: /tmp/sv_drops
-          dest: ../tests_results/
+          dest: ../tests_results/data/
           flat: true
       - name: Remove SV timestamp logger
         command:
@@ -147,7 +156,7 @@
       - name: Fetch PTP logs
         fetch:
           src: /tmp/{{ item }}_{{ inventory_hostname }}
-          dest: ../tests_results/
+          dest: ../tests_results/ptp/
           flat: true
         with_items:
           - ptp4l
@@ -167,20 +176,20 @@
     - name: Generate latency report
       command:
         python3 ../files/scripts/generate_latency_report.py  \
-        -s ../tests_results/{{ hostvars[item].sv_file }} \
-        -p ../tests_results/{{ publisher_sv_file }} \
+        -s ../tests_results/data/{{ hostvars[item].sv_file }} \
+        -p ../tests_results/data/{{ publisher_sv_file }} \
         -o ../tests_results
       with_items: "{{ groups['subscriber'] }}"
     - name: Generate phc2sys plots
       command:
         python3 ../files/scripts/plot_ptp.py \
-        -i ../tests_results/phc2sys_{{ item }} \
+        -i ../tests_results/ptp/phc2sys_{{ item }} \
         -o ../tests_results
       with_items: "{{ groups['all'] }}"
     - name: Generate phc2sys plots
       command:
         python3 ../files/scripts/plot_ptp.py \
-        -i ../tests_results/ptp4l_{{ item }} \
+        -i ../tests_results/ptp/ptp4l_{{ item }} \
         -o ../tests_results
       with_items:
       - "{{ groups['publisher'] }}"
