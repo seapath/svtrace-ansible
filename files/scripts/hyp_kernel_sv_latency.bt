@@ -46,7 +46,7 @@ kprobe:consume_skb
         $lat = ($ts - @start)/1000;
 
         if ($lat > @lat_threshold){
-          printf("T2:%llu: SV %d Thyp %-lluus > %dus in %s (%s pid %d)\n", $ts/1000,
+          printf("T1:%llu:T2:%llu: SV %d Thyp %-lluus > %dus in %s (%s pid %d)\n", @start/1000 ,$ts/1000,
           @old_sv_counter, $lat, @lat_threshold, func, comm, pid);
         }
     }
