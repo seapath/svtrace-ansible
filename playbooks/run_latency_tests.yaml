@@ -25,6 +25,8 @@
   become: true
   hosts:
     - hypervisors
+  vars_files:
+    - ../vars/threshold.yaml
   tasks:
       - name : Run bpftrace container
         command:
@@ -36,12 +38,14 @@
           -v /tmp:/tmp \
           -v /proc:/proc \
           bpftrace \
-          /tmp/launch_bpftrace.sh hypervisors {{ hypervisor_latency_threshold }}
+          /tmp/launch_bpftrace.sh hypervisors {{ Thyp }}
         when: enable_bpftrace is defined and enable_bpftrace|bool == true
 - name: Launch bpftrace on subscriber
   become: true
   hosts:
     - subscriber
+  vars_files:
+    - ../vars/threshold.yaml
   tasks:
       - name : Run bpftrace container
         command:
@@ -53,7 +57,7 @@
           -v /tmp:/tmp \
           -v /proc:/proc \
           bpftrace \
-          /tmp/launch_bpftrace.sh subscriber {{ subscriber_latency_threshold }}
+          /tmp/launch_bpftrace.sh subscriber {{ Tsub }}
       - name: Make sure bpftrace has time to start
         wait_for:
           timeout: 5
