@@ -27,7 +27,6 @@ all:
 
                             sv_interface:  # SV emission interface
                             bpftrace_script: # BPFtrace script to be run
-                            hypervisor_threshold_latency: 100 # Threshold of the Thyp latency
                             enable_bpftrace: # Enable BPFtrace tracing
 
                 publisher:
