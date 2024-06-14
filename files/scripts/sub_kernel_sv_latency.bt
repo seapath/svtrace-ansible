@@ -1,8 +1,8 @@
 BEGIN
 {
   @sv_ether_proto = 47752;
-  @start = 0;
-  @lat_threshold = $1;
+  @t3 = 0;
+  @tsub_threshold = $1;
 }
 
 kprobe:tpacket_rcv
@@ -14,7 +14,7 @@ kprobe:tpacket_rcv
   $protocol = $skb->protocol;
   if ($protocol == @sv_ether_proto) {
 
-    @start = nsecs(tai);
+    @t3 = nsecs(tai);
     $data_sv_counter = $skb->head + $skb->mac_header;
     $data_sv_counter += 51;
 
@@ -35,12 +35,12 @@ kprobe:tpacket_get_timestamp
   $protocol = $skb->protocol;
 
   if ($protocol == @sv_ether_proto) {
-    $ts = nsecs(tai);
-    $lat = ($ts - @start)/1000;
+    $t4 = nsecs(tai);
+    $tsub = ($t4 - @t3)/1000;
 
-    if ($lat >= @lat_threshold){
-      printf("T3:%-llu:T4:%-llu SV %d Tsub %-lluus > %dus in %s (%s pid %d)\n", @start/1000, $ts/1000,
-      @old_sv_counter, $lat, @lat_threshold, func, comm, pid);
+    if ($tsub >= @tsub_threshold){
+      printf("T3:%-llu:T4:%-llu SV %d Tsub %-lluus > %dus in %s (%s pid %d)\n", @t3/1000, $t4/1000,
+      @old_sv_counter, $tsub, @tsub_threshold, func, comm, pid);
     }
   }
 }

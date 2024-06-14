@@ -5,8 +5,8 @@ BEGIN
 
   @sv_irq_interface_pid = $1;
   @vhost_pid = $2;
-  @lat_threshold = $3;
-  @start = 0;
+  @thyp_threshold = $3;
+  @t1 = 0;
 }
 
 kprobe:skb_push
@@ -17,7 +17,7 @@ kprobe:skb_push
 
   if ($protocol == @sv_ether_proto) {
     if(pid == @sv_irq_interface_pid){
-      @start = nsecs(tai);
+      @t1 = nsecs(tai);
       $data_sv_counter = $skb->head + $skb->mac_header;
       $data_sv_counter += 51;
 
@@ -42,12 +42,12 @@ kprobe:consume_skb
   if ($protocol == @sv_ether_proto) {
 
       if(pid == @vhost_pid){
-        $ts = nsecs(tai);
-        $lat = ($ts - @start)/1000;
+        $t2 = nsecs(tai);
+        $thyp = ($t2 - @t1)/1000;
 
-        if ($lat >= @lat_threshold){
-          printf("T1:%llu:T2:%llu: SV %d Thyp %-lluus > %dus in %s (%s pid %d)\n", @start/1000 ,$ts/1000,
-          @old_sv_counter, $lat, @lat_threshold, func, comm, pid);
+        if ($thyp >= @thyp_threshold){
+          printf("T1:%llu:T2:%llu: SV %d Thyp %-lluus > %dus in %s (%s pid %d)\n", @t1/1000 ,$t2/1000,
+          @old_sv_counter, $thyp, @thyp_threshold, func, comm, pid);
         }
     }
   }
