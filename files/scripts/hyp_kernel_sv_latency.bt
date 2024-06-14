@@ -1,12 +1,12 @@
 BEGIN
 {
-  @sv_ether_proto = 47752;
-  @old_sv_counter = 1096;
+  @sv_ether_proto = (uint64)47752;
+  @old_sv_counter = (uint64)1096;
 
-  @sv_irq_interface_pid = $1;
-  @vhost_pid = $2;
-  @thyp_threshold = $3;
-  @t1 = 0;
+  @sv_irq_interface_pid = (uint64)$1;
+  @vhost_pid = (uint64)$2;
+  @thyp_threshold = (uint64)$3;
+  @t1 = (uint64)0;
   @sv_iteration = 0;
 }
 
@@ -14,7 +14,7 @@ kprobe:skb_push
 {
   $skb = (struct sk_buff*)arg0;
   $protocol = $skb->protocol;
-  $sv_counter = 0;
+  $sv_counter = (uint64)0;
 
   if ($protocol == @sv_ether_proto) {
     if(pid == @sv_irq_interface_pid){

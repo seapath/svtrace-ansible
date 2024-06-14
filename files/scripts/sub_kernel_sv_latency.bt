@@ -1,8 +1,8 @@
 BEGIN
 {
-  @sv_ether_proto = 47752;
-  @t3 = 0;
-  @tsub_threshold = $1;
+  @sv_ether_proto = (uint64)47752;
+  @t3 = (uint64)0;
+  @tsub_threshold = (uint64)$1;
   @sv_iteration = 0;
 }
 
@@ -11,7 +11,7 @@ kprobe:tpacket_rcv
   $skb = (struct sk_buff *)arg0;
   $data_sv_counter = $skb->head + $skb->mac_header;
   $data_sv_counter += 51;
-  $sv_counter = 0;
+  $sv_counter = (uint64)0;
   $protocol = $skb->protocol;
   if ($protocol == @sv_ether_proto) {
 
