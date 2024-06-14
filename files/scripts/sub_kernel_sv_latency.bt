@@ -38,7 +38,7 @@ kprobe:tpacket_get_timestamp
     $ts = nsecs(tai);
     $lat = ($ts - @start)/1000;
 
-    if ($lat > @lat_threshold){
+    if ($lat >= @lat_threshold){
       printf("T3:%-llu:T4:%-llu SV %d Tsub %-lluus > %dus in %s (%s pid %d)\n", @start/1000, $ts/1000,
       @old_sv_counter, $lat, @lat_threshold, func, comm, pid);
     }
