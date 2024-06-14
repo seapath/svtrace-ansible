@@ -147,3 +147,11 @@ The threshold of latency variables can be set in the var file
 `threshold.yaml`. To record all SV data, set the threshold value to 0.
 
 For CI purpose, you can also use the `launch_tests.sh` script.
+
+## Release notes
+
+### Version v0.1
+
+* Configuration of the target
+* Hypervisor, subscriber, and total latency measurement
+* Generation of plot results and .adoc report
