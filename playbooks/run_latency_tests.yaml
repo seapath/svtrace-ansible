@@ -122,20 +122,38 @@
           dest: ../tests_results/data/
           mode: pull
 
-- name: Cleanup bpftrace
+- name: Cleanup bpftrace on hypervisor
   become: true
   hosts:
     - hypervisors
+  tasks:
+      - name: Extract bpftrace log
+        shell:
+          cmd: >-
+            docker logs bpftrace > /tmp/thyp
+        when: enable_bpftrace is defined and enable_bpftrace|bool == true
+      - name: Fetch bpftrace log
+        fetch:
+          src: /tmp/thyp
+          dest: ../tests_results/latency/
+          flat: true
+        when: enable_bpftrace is defined and enable_bpftrace|bool == true
+      - name: Stop bpftrace container
+        command: docker stop bpftrace
+        when: enable_bpftrace is defined and enable_bpftrace|bool == true
+- name: Cleanup bpftrace on subscriber
+  become: true
+  hosts:
     - subscriber
   tasks:
       - name: Extract bpftrace log
         shell:
           cmd: >-
-            docker logs bpftrace > /tmp/record_bpftrace_{{ inventory_hostname }}
+            docker logs bpftrace > /tmp/tsub
         when: enable_bpftrace is defined and enable_bpftrace|bool == true
       - name: Fetch bpftrace log
         fetch:
-          src: /tmp/record_bpftrace_{{ inventory_hostname }}
+          src: /tmp/tsub
           dest: ../tests_results/latency/
           flat: true
         when: enable_bpftrace is defined and enable_bpftrace|bool == true
