@@ -58,6 +58,7 @@
           -v /proc:/proc \
           bpftrace \
           /tmp/launch_bpftrace.sh subscriber {{ Tsub }}
+        when: enable_bpftrace is defined and enable_bpftrace|bool == true
       - name: Make sure bpftrace has time to start
         wait_for:
           timeout: 5
