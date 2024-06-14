@@ -79,6 +79,9 @@ A valid IEC61850 PCAP file is needed on the publisher machine. The
 selection of this file can be achieved using `pcap_file` inventory
 variable.
 
+In order to access kernel symbol names, kernel addresses must be
+exposed with file `/proc/sys/kernel/kptr_restrict`.
+
 ## Configuration
 ###  Time synchronization
 
