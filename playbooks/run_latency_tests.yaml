@@ -176,6 +176,7 @@
         with_items:
           - ptp4l
           - phc2sys
+        when: ptp_manual_configuration is defined and ptp_manual_configuration|bool == true
       - name: Fetch PTP logs
         fetch:
           src: /tmp/{{ item }}_{{ inventory_hostname }}
@@ -184,7 +185,7 @@
         with_items:
           - ptp4l
           - phc2sys
-
+        when: ptp_manual_configuration is defined and ptp_manual_configuration|bool == true
 - name: Compute results
   hosts:
     - localhost
@@ -209,6 +210,7 @@
         -i ../tests_results/ptp/phc2sys_{{ item }} \
         -o ../tests_results
       with_items: "{{ groups['all'] }}"
+      when: ptp_manual_configuration is defined and ptp_manual_configuration|bool == true
     - name: Generate phc2sys plots
       command:
         python3 ../files/scripts/plot_ptp.py \
@@ -217,3 +219,4 @@
       with_items:
       - "{{ groups['publisher'] }}"
       - "{{ groups['hypervisors'] }}"
+      when: ptp_manual_configuration is defined and ptp_manual_configuration|bool == true
