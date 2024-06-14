@@ -7,6 +7,7 @@ BEGIN
   @vhost_pid = $2;
   @thyp_threshold = $3;
   @t1 = 0;
+  @sv_iteration = 0;
 }
 
 kprobe:skb_push
@@ -27,6 +28,9 @@ kprobe:skb_push
       }
 
       if($sv_counter != @old_sv_counter){
+        if($sv_counter < @old_sv_counter){
+          @sv_iteration += 1;
+        }
         @old_sv_counter = $sv_counter;
       }
     }
@@ -46,8 +50,8 @@ kprobe:consume_skb
         $thyp = ($t2 - @t1)/1000;
 
         if ($thyp >= @thyp_threshold){
-          printf("T1:%llu:T2:%llu: SV %d Thyp %-lluus > %dus in %s (%s pid %d)\n", @t1/1000 ,$t2/1000,
-          @old_sv_counter, $thyp, @thyp_threshold, func, comm, pid);
+          printf("T1:%llu:T2:%llu: SV %d iteration %d Thyp %-lluus > %dus in %s (%s pid %d)\n", @t1/1000 ,$t2/1000,
+          @old_sv_counter, @sv_iteration, $thyp, @thyp_threshold, func, comm, pid);
         }
     }
   }

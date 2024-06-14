@@ -3,6 +3,7 @@ BEGIN
   @sv_ether_proto = 47752;
   @t3 = 0;
   @tsub_threshold = $1;
+  @sv_iteration = 0;
 }
 
 kprobe:tpacket_rcv
@@ -24,6 +25,9 @@ kprobe:tpacket_rcv
     }
 
     if($sv_counter != @old_sv_counter){
+      if($sv_counter < @old_sv_counter){
+        @sv_iteration += 1;
+      }
       @old_sv_counter = $sv_counter;
     }
   }
@@ -39,8 +43,8 @@ kprobe:tpacket_get_timestamp
     $tsub = ($t4 - @t3)/1000;
 
     if ($tsub >= @tsub_threshold){
-      printf("T3:%-llu:T4:%-llu SV %d Tsub %-lluus > %dus in %s (%s pid %d)\n", @t3/1000, $t4/1000,
-      @old_sv_counter, $tsub, @tsub_threshold, func, comm, pid);
+      printf("T3:%-llu:T4:%-llu SV %d iteration %d Tsub %-lluus > %dus in %s (%s pid %d)\n", @t3/1000, $t4/1000,
+      @old_sv_counter, @sv_iteration, $tsub, @tsub_threshold, func, comm, pid);
     }
   }
 }
