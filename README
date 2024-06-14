@@ -140,4 +140,7 @@ cqfd -b run_tests
 Test duration can be set achieved using `pcap_cycles` inventory
 variable.
 
+The threshold of latency variables can be set in the var file
+`threshold.yaml`. To record all SV data, set the threshold value to 0.
+
 For CI purpose, you can also use the `launch_tests.sh` script.
