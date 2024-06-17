@@ -10,17 +10,20 @@ def compute_pacing(pub_sv, sub_sv):
     pub_pacing = []
     sub_pacing = []
 
-    pub_timestamps = [int(item.split(":")[2]) for item in pub_sv]
-    sub_timestamps = [int(item.split(":")[2]) for item in sub_sv]
+    pub_timestamps = [int(item.split(":")[3]) for item in pub_sv]
+    sub_timestamps = [int(item.split(":")[3]) for item in sub_sv]
 
-    pub_sv_cnt = np.array([int(item.split(":")[1]) for item in pub_sv])
-    sub_sv_cnt = np.array([int(item.split(":")[1]) for item in sub_sv])
+    pub_sv_cnt = np.array([int(item.split(":")[2]) for item in pub_sv])
+    sub_sv_cnt = np.array([int(item.split(":")[2]) for item in sub_sv])
+
+    pub_sv_iteration = np.array([int(item.split(":")[0]) for item in pub_sv])
+    sub_sv_iteration = np.array([int(item.split(":")[0]) for item in sub_sv])
 
     pub_pacing = np.diff(pub_timestamps)
     sub_pacing = np.diff(sub_timestamps)
 
-    pub_pacing = np.stack((pub_sv_cnt[0:-1],pub_pacing))
-    sub_pacing = np.stack((sub_sv_cnt[0:-1],sub_pacing))
+    pub_pacing = np.stack((pub_sv_iteration[0:-1],pub_sv_cnt[0:-1],pub_pacing))
+    sub_pacing = np.stack((sub_sv_iteration[0:-1],sub_sv_cnt[0:-1],sub_pacing))
 
     return pub_pacing, sub_pacing
 
@@ -35,11 +38,13 @@ def detect_sv_drop(sv_counter):
 
 def compute_latency(pub_sv, sub_sv):
     pub_sv_id = pub_sv[0]
-    pub_timestamps = np.array([int(item.split(":")[2]) for item in pub_sv])
-    sub_timestamps = np.array([int(item.split(":")[2]) for item in sub_sv])
+    pub_timestamps = np.array([int(item.split(":")[3]) for item in pub_sv])
+    sub_timestamps = np.array([int(item.split(":")[3]) for item in sub_sv])
 
-    pub_sv_cnt = np.array([int(item.split(":")[1]) for item in pub_sv])
-    sub_sv_cnt = np.array([int(item.split(":")[1]) for item in sub_sv])
+    pub_sv_cnt = np.array([int(item.split(":")[2]) for item in pub_sv])
+    sub_sv_cnt = np.array([int(item.split(":")[2]) for item in sub_sv])
+
+    pub_sv_iteration = np.array([int(item.split(":")[0]) for item in pub_sv])
 
     # Detect discontinuities
     pub_discontinuities = detect_sv_drop(pub_sv_cnt)
@@ -57,7 +62,7 @@ def compute_latency(pub_sv, sub_sv):
                 pub_sv_cnt = np.delete(pub_sv_cnt,sv_discontinuity+1)
 
     latencies = sub_timestamps - pub_timestamps
-    latencies = np.stack((pub_sv_cnt,latencies))
+    latencies = np.stack((pub_sv_iteration,pub_sv_cnt,latencies))
 
     stream_name = pub_sv_id.split(":")[0]
 
@@ -86,13 +91,13 @@ def compute_neglat(values):
     return np.count_nonzero(values < 0)
 
 def compute_lat_threshold(values, threshold):
-    indices_exceeding_threshold = np.where(values[1] > threshold)[0]
+    indices_exceeding_threshold = np.where(values[2] > threshold)[0]
     return indices_exceeding_threshold
 
 def save_sv_lat_threshold(data_type, sv, indices_exceeding_threshold, output):
     with open(f"{output}/sv_{data_type}_exceed", "w", encoding="utf-8") as sv_lat_exceed_file:
         for exceeding_lat in indices_exceeding_threshold:
-            sv_lat_exceed_file.write(f"SV {sv[0][exceeding_lat]} {data_type} exceed: {sv[1][exceeding_lat]}us\n")
+            sv_lat_exceed_file.write(f"SV {sv[1][exceeding_lat]} iteration {sv[0][exceeding_lat]} {data_type} exceed: {sv[2][exceeding_lat]}us\n")
 
 def compute_size(values):
     return np.size(values)
@@ -208,28 +213,28 @@ def generate_adoc(pub, sub, output):
         save_sv_lat_threshold("publisher pacing", pub_pacing, pub_pacing_exceeding_threshold, output)
         save_sv_lat_threshold("subscriber pacing", sub_pacing, sub_pacing_exceeding_threshold, output)
 
-        filename = save_histogram("latency", latencies[1],sub_name,output)
-        plot_stream(stream_name,"latency", latencies[1], sub_name, output)
-        plot_cdf(latencies[1], output)
+        filename = save_histogram("latency", latencies[2],sub_name,output)
+        plot_stream(stream_name,"latency", latencies[2], sub_name, output)
+        plot_cdf(latencies[2], output)
 
-        save_histogram("pacing", pub_pacing[1],"publisher",output)
-        plot_stream(stream_name,"pacing", pub_pacing[1], "publisher", output)
+        save_histogram("pacing", pub_pacing[2],"publisher",output)
+        plot_stream(stream_name,"pacing", pub_pacing[2], "publisher", output)
 
-        save_histogram("pacing", sub_pacing[1],"subscriber",output)
-        plot_stream(stream_name,"pacing", sub_pacing[1], "subscriber", output)
-        percentage_hist(sub_pacing[1],"subscriber",output)
-        percentage_hist(pub_pacing[1],"publisher",output)
+        save_histogram("pacing", sub_pacing[2],"subscriber",output)
+        plot_stream(stream_name,"pacing", sub_pacing[2], "subscriber", output)
+        percentage_hist(sub_pacing[2],"subscriber",output)
+        percentage_hist(pub_pacing[2],"publisher",output)
 
         adoc_file.write(
                 latency_block.format(
                     _sub_name_=sub_name,
                     _stream_= get_stream_count(output),
-                    _minlat_= compute_min(latencies[1]),
-                    _maxlat_= compute_max(latencies[1]),
-                    _avglat_= compute_average(latencies[1]),
-                    _neglat_ = compute_neglat(latencies[1]),
-                    _size_ = compute_size(latencies[1]),
-                    _neg_percentage_ = np.round(compute_neglat(latencies[1]) / compute_size(latencies[1]),5) *100,
+                    _minlat_= compute_min(latencies[2]),
+                    _maxlat_= compute_max(latencies[2]),
+                    _avglat_= compute_average(latencies[2]),
+                    _neglat_ = compute_neglat(latencies[2]),
+                    _size_ = compute_size(latencies[2]),
+                    _neg_percentage_ = np.round(compute_neglat(latencies[2]) / compute_size(latencies[2]),5) *100,
                     _output_= filename,
                     _lat_100_ = len(lat_exceeding_threshold)
                 )
@@ -237,12 +242,12 @@ def generate_adoc(pub, sub, output):
 
         adoc_file.write(
                 pacing_block.format(
-                    _pub_minpace_= compute_min(pub_pacing[1]),
-                    _pub_maxpace_= compute_max(pub_pacing[1]),
-                    _pub_avgpace_= compute_average(pub_pacing[1]),
-                    _sub_minpace_= compute_min(sub_pacing[1]),
-                    _sub_maxpace_= compute_max(sub_pacing[1]),
-                    _sub_avgpace_= compute_average(sub_pacing[1]),
+                    _pub_minpace_= compute_min(pub_pacing[2]),
+                    _pub_maxpace_= compute_max(pub_pacing[2]),
+                    _pub_avgpace_= compute_average(pub_pacing[2]),
+                    _sub_minpace_= compute_min(sub_pacing[2]),
+                    _sub_maxpace_= compute_max(sub_pacing[2]),
+                    _sub_avgpace_= compute_average(sub_pacing[2]),
                     _output_= filename
                 )
         )
