@@ -189,6 +189,8 @@
 - name: Compute results
   hosts:
     - localhost
+  vars_files:
+    - ../vars/threshold.yaml
   tasks:
     - name: Record end time of the test
       shell:
@@ -202,7 +204,8 @@
         python3 ../files/scripts/generate_latency_report.py  \
         -s ../tests_results/data/{{ hostvars[item].sv_file }} \
         -p ../tests_results/data/{{ publisher_sv_file }} \
-        -o ../tests_results
+        -o ../tests_results \
+        --ttot {{ Ttot }}
       with_items: "{{ groups['subscriber'] }}"
     - name: Generate phc2sys plots
       command:
