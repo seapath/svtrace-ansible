@@ -1,6 +1,8 @@
 settings.json
 seapath-inventories/
 tests_results*/
+files/docker/sv_timestamp_logger/sv_parser
+files/docker/sv_timestamp_logger/sv_timestamp_logger
 *.tar
 .vscode/
 playbooks/debug.yaml
