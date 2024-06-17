@@ -4,7 +4,9 @@ To do so, run the following commands:
 
 ```bash
 git clone https://github.com/seapath/sv_timestamp_logger.git
+git -C sv_timestamp_logger checkout 567a9d4d3f64d0df46eb269ba893815d8e9a1d76
 git clone https://github.com/seapath/sv_parser.git
+git -C sv_parser checkout 2837e181f7b159a0d60aebf33183a8c17059116f
 cp ./sv_parser/* ./sv_timestamp_logger/lib/
 docker build sv_timestamp_logger/ --tag sv_timestamp_logger
 docker image save -o sv_timestamp_logger.tar sv_timestamp_logger
