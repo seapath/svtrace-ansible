@@ -169,7 +169,7 @@ def generate_adoc(pub, sub, output, ttot):
                 |Number of stream |Minimum latency |Maximum latency |Average latency
                 |{_stream_} |{_minlat_} us |{_maxlat_} us |{_avglat_} us
                 |Number of latencies < 0: {_neglat_} ({_neg_percentage_}%)
-                |Number of latencies > 100us {_lat_100_}
+                |Number of latencies > {_Ttot_}us {_lat_Ttot_}
                 |===
                 image::{_output_}/latency_histogram_{_sub_name_}.png[]
                 """
@@ -221,7 +221,8 @@ def generate_adoc(pub, sub, output, ttot):
                     _size_ = compute_size(latencies),
                     _neg_percentage_ = np.round(compute_neglat(latencies) / compute_size(latencies),5) *100,
                     _output_= filename,
-                    _lat_100_ = len(total_lat_exceeding_threshold)
+                    _Ttot_ = ttot,
+                    _lat_Ttot_ = len(total_lat_exceeding_threshold)
                 )
         )
 
