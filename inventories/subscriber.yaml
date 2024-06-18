@@ -27,3 +27,4 @@ all:
                             bpftrace_script: # BPFtrace script to be run
                             ptp_manual_configuration: # Remove this var to disable ptp configuration
                             enable_bpftrace: # Enable BPFtrace tracing
+                            bpftrace_core: # Core to run BPFtrace (should be isolated)

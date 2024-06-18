@@ -34,6 +34,7 @@
           -d \
           --name bpftrace \
           --rm \
+          --cpuset-cpus={{ bpftrace_core }} \
           -v /sys/kernel/debug:/sys/kernel/debug:ro \
           -v /tmp:/tmp \
           -v /proc:/proc \
@@ -53,6 +54,7 @@
           -d \
           --name bpftrace \
           --rm \
+          --cpuset-cpus={{ bpftrace_core }} \
           -v /sys/kernel/debug:/sys/kernel/debug:ro \
           -v /tmp:/tmp \
           -v /proc:/proc \

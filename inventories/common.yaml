@@ -28,6 +28,7 @@ all:
                             sv_interface:  # SV emission interface
                             bpftrace_script: # BPFtrace script to be run
                             enable_bpftrace: # Enable BPFtrace tracing
+                            bpftrace_core: # Core to run BPFtrace (should be isolated)
 
                 publisher:
                     hosts:
