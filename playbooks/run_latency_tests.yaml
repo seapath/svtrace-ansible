@@ -110,10 +110,10 @@
           cmd: >-
             docker logs sv_timestamp_logger > /tmp/sv_drops
       - name: Fetch sv drop
-        fetch:
+        synchronize:
           src: /tmp/sv_drops
           dest: ../tests_results/data/
-          flat: true
+          mode: pull
       - name: Remove SV timestamp logger
         command:
           docker rm sv_timestamp_logger
@@ -134,10 +134,10 @@
             docker logs bpftrace > /tmp/thyp
         when: enable_bpftrace is defined and enable_bpftrace|bool == true
       - name: Fetch bpftrace log
-        fetch:
+        synchronize:
           src: /tmp/thyp
           dest: ../tests_results/latency/
-          flat: true
+          mode: pull
         when: enable_bpftrace is defined and enable_bpftrace|bool == true
       - name: Stop bpftrace container
         command: docker stop bpftrace
@@ -153,10 +153,10 @@
             docker logs bpftrace > /tmp/tsub
         when: enable_bpftrace is defined and enable_bpftrace|bool == true
       - name: Fetch bpftrace log
-        fetch:
+        synchronize:
           src: /tmp/tsub
           dest: ../tests_results/latency/
-          flat: true
+          mode: pull
         when: enable_bpftrace is defined and enable_bpftrace|bool == true
       - name: Stop bpftrace container
         command: docker stop bpftrace
@@ -178,10 +178,10 @@
           - phc2sys
         when: ptp_manual_configuration is defined and ptp_manual_configuration|bool == true
       - name: Fetch PTP logs
-        fetch:
+        synchronize:
           src: /tmp/{{ item }}_{{ inventory_hostname }}
           dest: ../tests_results/ptp/
-          flat: true
+          mode: pull
         with_items:
           - ptp4l
           - phc2sys
