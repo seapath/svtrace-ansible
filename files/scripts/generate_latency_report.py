@@ -77,10 +77,14 @@ def compute_lat_threshold(values, threshold):
     indices_exceeding_threshold = np.where(values > threshold)[0]
     return indices_exceeding_threshold
 
-def save_sv_lat_threshold(data_type, latency, sv, indices_exceeding_threshold, output):
-    with open(f"{output}/sv_{data_type}_exceed", "w", encoding="utf-8") as sv_lat_exceed_file:
+def save_sv_lat_threshold(data_type, latencies, SVs, indices_exceeding_threshold, output):
+    file_name = f"{output}/sv_{data_type}_exceed"
+    with open(file_name, "w", encoding="utf-8") as sv_lat_exceed_file:
         for exceeding_lat in indices_exceeding_threshold:
-            sv_lat_exceed_file.write(f"SV {sv[2][exceeding_lat]} iteration {sv[0][exceeding_lat]} {data_type} exceed: {latency[exceeding_lat]}us\n")
+            iteration = SVs[0][exceeding_lat]
+            sv_cnt = SVs[2][exceeding_lat]
+            latency = latencies[exceeding_lat]
+            sv_lat_exceed_file.write(f"SV {iteration}-{sv_cnt} {latency}us\n")
 
 def compute_size(values):
     return np.size(values)
