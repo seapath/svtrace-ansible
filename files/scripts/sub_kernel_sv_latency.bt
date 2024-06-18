@@ -43,8 +43,7 @@ kprobe:tpacket_get_timestamp
     $tsub = ($t4 - @t3)/1000;
 
     if ($tsub >= @tsub_threshold){
-      printf("T3:%-llu:T4:%-llu SV %d iteration %d Tsub %-lluus > %dus in %s (%s pid %d)\n", @t3/1000, $t4/1000,
-      @old_sv_counter, @sv_iteration, $tsub, @tsub_threshold, func, comm, pid);
+      printf("SV %d-%d Tsub %-lluus\n", @sv_iteration, @old_sv_counter, $tsub);
     }
   }
 }

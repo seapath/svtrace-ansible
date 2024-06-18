@@ -50,8 +50,7 @@ kprobe:consume_skb
         $thyp = ($t2 - @t1)/1000;
 
         if ($thyp >= @thyp_threshold){
-          printf("T1:%llu:T2:%llu: SV %d iteration %d Thyp %-lluus > %dus in %s (%s pid %d)\n", @t1/1000 ,$t2/1000,
-          @old_sv_counter, @sv_iteration, $thyp, @thyp_threshold, func, comm, pid);
+          printf("SV %d-%d Thyp %-lluus\n", @sv_iteration, @old_sv_counter, $thyp);
         }
     }
   }
