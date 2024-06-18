@@ -95,7 +95,8 @@ def save_histogram(plot_type, values, sub_name, output):
 
     # Add titles and legends
     plt.xlabel(f"{plot_type} (us)")
-    plt.ylabel("Frequency")
+    plt.ylabel("Occurrences")
+    plt.yscale('log')
     plt.title(f"{plot_type} Histogram for {sub_name}")
 
     # Save the plot
@@ -127,10 +128,9 @@ def plot_cdf(values, output):
 
 def plot_stream(stream_name, plot_type, values, lat_name, output):
     plt.plot(range(len(values)), values)
-    plt.xscale("log")
     plt.xlabel("Samples value")
     plt.ylabel(f'{plot_type} (µs)')
-    plt.title('Stream: {}'.format(stream_name))
+    plt.title('latency over time, Stream: {}'.format(stream_name))
 
     lat_name = lat_name.replace(" ", "_")
     plt.savefig(f"{output}/plot_{plot_type}_{lat_name}.png")
