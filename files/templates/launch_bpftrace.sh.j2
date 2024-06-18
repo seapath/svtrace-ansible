@@ -9,7 +9,7 @@ if [ "$DEV" == "hypervisors" ]; then
     IRQ_SV_PID="$(ps -eo comm,pid|grep "{{ sv_interface }}-T"|head -n1| awk '{print $2}')"
     QEMU_PID="$(ps -eo comm,pid|grep "qemu"| awk '{print $2}')"
 
-    ./bpftrace /tmp/record_kernel_sv_latency.bt $IRQ_SV_PID $QEMU_PID $LAT_THRESHOLD
+    chrt -f 1 ./bpftrace /tmp/record_kernel_sv_latency.bt $IRQ_SV_PID $QEMU_PID $LAT_THRESHOLD
 
 elif [ "$DEV" == "subscriber" ]; then
     ./bpftrace /tmp/record_kernel_sv_latency.bt $LAT_THRESHOLD
