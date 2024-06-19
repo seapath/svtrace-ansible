@@ -83,7 +83,7 @@
           --name sv_timestamp_logger \
           --network=host sv_timestamp_logger \
           -d {{sv_interface}} \
-          -f /tmp/{{ sv_file }} \
+          -f /tmp/ts_sv_{{ inventory_hostname }} \
           --first_SV_cnt \ {{first_SV}} \
            --max_SV_cnt 4000
       - name: Set FIFO scheduling on SV timestamp logger process
@@ -123,7 +123,7 @@
           docker rm sv_timestamp_logger
       - name: Fetch SV timestamps
         synchronize:
-          src: /tmp/{{ sv_file }}
+          src: /tmp/ts_sv_{{ inventory_hostname }}
           dest: ../tests_results/data/
           mode: pull
 
@@ -202,14 +202,14 @@
           echo Test ended at $(echo `date +'%T'`) >> ../tests_results/time
     - name: Set publisher host variable
       set_fact:
-        publisher_sv_file: "{{ hostvars[groups['publisher'][0]].sv_file }}"
-        hypervisor_sv_file: "{{ hostvars[groups['hypervisors'][0]].sv_file }}"
+        publisher_name: "{{ hostvars[groups['publisher'][0]].inventory_hostname }}"
+        hypervisor_name: "{{ hostvars[groups['hypervisors'][0]].inventory_hostname }}"
     - name: Generate latency report
       command:
         python3 ../files/scripts/generate_latency_report.py  \
-        -s ../tests_results/data/{{ hostvars[item].sv_file }} \
-        -y ../tests_results/data/{{ hypervisor_sv_file }} \
-        -p ../tests_results/data/{{ publisher_sv_file }} \
+        -s ../tests_results/data/ts_sv_{{ hostvars[item].inventory_hostname }} \
+        -y ../tests_results/data/ts_sv_{{ hypervisor_name }} \
+        -p ../tests_results/data/ts_sv_{{ publisher_name }} \
         -o ../tests_results \
         --ttot {{ Ttot }} \
         --tnet {{ Tres }}

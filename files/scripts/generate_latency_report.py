@@ -117,7 +117,7 @@ def plot_stream(stream_name, plot_type, values, lat_name, output):
     plt.close()
 
 def generate_adoc(pub, hyp, sub, output, ttot, tnet):
-    sub_name = sub.split("_")[4]
+    sub_name = sub.split("_")[2]
     with open(f"{output}/{ADOC_FILE_PATH}", "w", encoding="utf-8") as adoc_file:
         adoc_file.write("== Latency tests\n")
         sub_latency_block = textwrap.dedent(
