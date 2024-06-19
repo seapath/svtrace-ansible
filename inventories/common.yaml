@@ -25,7 +25,9 @@ all:
                             ptp_device: # PTP device synchronized by ptp4l
                             ptp_manual_configuration: # Remove this var to disable ptp configuration
 
-                            sv_interface:  # SV emission interface
+                            sv_interface:  # SV reception interface
+                            sv_file: # sv_timestamp_logger output file name result
+                            sv_ts_core: # sv_timestamp_logger CPU core
                             bpftrace_script: # BPFtrace script to be run
                             enable_bpftrace: # Enable BPFtrace tracing
                             bpftrace_core: # Core to run BPFtrace (should be isolated)
