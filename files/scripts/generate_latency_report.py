@@ -6,11 +6,8 @@ import numpy as np
 
 ADOC_FILE_PATH = f"latency-tests-report.adoc"
 
-def compute_pacing(pub_sv, sub_sv):
-    pub_pacing = np.diff(pub_sv[3])
-    sub_pacing = np.diff(sub_sv[3])
-
-    return pub_pacing, sub_pacing
+def compute_pacing(sv):
+    return np.diff(sv[3])
 
 def detect_sv_drop(sv_counter):
     diffs = np.diff(sv_counter)
@@ -193,11 +190,21 @@ def generate_adoc(pub, hyp, sub, output, ttot, tnet):
         pacing_block = textwrap.dedent(
                 """
                 == Pacing tests
+                === Publisher
                 |===
-                |Publisher minimum pacing |Publisher maximum pacing |Publisher average pacing
+                |Minimun pacing |Maximum pacing |Average pacing
                 |{_pub_minpace_} us |{_pub_maxpace_} us |{_pub_avgpace_} us
-                |Subscriber minimum pacing |Subscriber maximum pacing |Subscriber average pacing
+                |===
+                === Hypervisor
+                |===
+                |Minimun pacing |Maximum pacing |Average pacing
+                |{_hyp_minpace_} us |{_hyp_maxpace_} us |{_hyp_avgpace_} us
+                |===
+                === Subscriber
+                |===
+                |Minimun pacing |Maximum pacing |Average pacing
                 |{_sub_minpace_} us |{_sub_maxpace_} us |{_sub_avgpace_} us
+                |===
                 """
         )
 
@@ -206,16 +213,19 @@ def generate_adoc(pub, hyp, sub, output, ttot, tnet):
         sub_sv = extract_sv(sub)
         stream_name, total_latencies = compute_latency(pub_sv, sub_sv)
         _, network_latencies = compute_latency(pub_sv, hyp_sv)
-        pub_pacing, sub_pacing = compute_pacing(pub_sv, sub_sv)
-        #TODO : hyp pacing
+        pub_pacing = compute_pacing(pub_sv)
+        hyp_pacing = compute_pacing(hyp_sv)
+        sub_pacing = compute_pacing(sub_sv)
         total_lat_exceeding_threshold = compute_lat_threshold(total_latencies, ttot)
         network_lat_exceeding_threshold = compute_lat_threshold(network_latencies, tnet)
         pub_pacing_exceeding_threshold = compute_lat_threshold(pub_pacing, 280)
+        hyp_pacing_exceeding_threshold = compute_lat_threshold(hyp_pacing, 280)
         sub_pacing_exceeding_threshold = compute_lat_threshold(sub_pacing, 280)
 
         save_sv_lat_threshold("total latency", total_latencies, pub_sv,  total_lat_exceeding_threshold, output)
         save_sv_lat_threshold("network latency", network_latencies, pub_sv,  network_lat_exceeding_threshold, output)
         save_sv_lat_threshold("publisher pacing", pub_pacing, pub_sv, pub_pacing_exceeding_threshold, output)
+        save_sv_lat_threshold("hypervisor pacing", hyp_pacing, hyp_sv, hyp_pacing_exceeding_threshold, output)
         save_sv_lat_threshold("subscriber pacing", sub_pacing, sub_sv, sub_pacing_exceeding_threshold, output)
 
         filename = save_histogram("latency", total_latencies,"total latency",output)
@@ -227,10 +237,14 @@ def generate_adoc(pub, hyp, sub, output, ttot, tnet):
         save_histogram("Pacing", pub_pacing,"publisher",output)
         plot_stream(stream_name,"Pacing", pub_pacing, "publisher", output)
 
+        save_histogram("Pacing", hyp_pacing,"hypervisor",output)
+        plot_stream(stream_name,"Pacing", hyp_pacing, "hypervisor", output)
+
         save_histogram("Pacing", sub_pacing,"subscriber",output)
         plot_stream(stream_name,"Pacing", sub_pacing, "subscriber", output)
         percentage_hist(sub_pacing,"subscriber",output)
         percentage_hist(pub_pacing,"publisher",output)
+        percentage_hist(hyp_pacing,"hypervisor",output)
 
         adoc_file.write(
                 sub_latency_block.format(
@@ -263,6 +277,9 @@ def generate_adoc(pub, hyp, sub, output, ttot, tnet):
                     _pub_minpace_= compute_min(pub_pacing),
                     _pub_maxpace_= compute_max(pub_pacing),
                     _pub_avgpace_= compute_average(pub_pacing),
+                    _hyp_minpace_= compute_min(hyp_pacing),
+                    _hyp_maxpace_= compute_max(hyp_pacing),
+                    _hyp_avgpace_= compute_average(hyp_pacing),
                     _sub_minpace_= compute_min(sub_pacing),
                     _sub_maxpace_= compute_max(sub_pacing),
                     _sub_avgpace_= compute_average(sub_pacing),
