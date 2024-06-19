@@ -94,7 +94,7 @@ def save_histogram(plot_type, values, sub_name, output):
     plt.xlabel(f"{plot_type} (us)")
     plt.ylabel("Occurrences")
     plt.yscale('log')
-    plt.title(f"{plot_type} Histogram for {sub_name}")
+    plt.title(f"{sub_name} {plot_type} Histogram")
 
     # Save the plot
     if not os.path.exists(output):
@@ -105,58 +105,15 @@ def save_histogram(plot_type, values, sub_name, output):
     plt.close()
     return filename
 
-def plot_cdf(values, output):
-    sorted_latency = np.sort(values)
-
-    # Calculate the cumulative percentage for each latency value
-    cumulative_percentage = np.arange(1, len(sorted_latency) + 1) / len(sorted_latency) * 100
-
-    # Plot the CDF
-    plt.figure(figsize=(8, 6))
-    plt.plot(cumulative_percentage, sorted_latency, linestyle='-', marker="x", linewidth=1)
-    plt.ylabel('Latency (µs)')
-    plt.xlabel('Cumulative Percentage (%)')
-    plt.title('Cumulative Distribution Function (CDF) of total latency')
-
-
-    plt.grid(True)
-    plt.savefig(f"{output}/cdf.png")
-    plt.close()
-
 def plot_stream(stream_name, plot_type, values, lat_name, output):
     plt.plot(range(len(values)), values)
     plt.xlabel("Samples value")
     plt.ylabel(f'{plot_type} (µs)')
-    plt.title('latency over time, Stream: {}'.format(stream_name))
+    plt.title(f'{lat_name} {plot_type} over time, Stream: {stream_name}')
 
     lat_name = lat_name.replace(" ", "_")
     plt.savefig(f"{output}/plot_{plot_type}_{lat_name}.png")
     print(f"Plot saved as 'plot_{plot_type}_{lat_name}.png'.")
-    plt.close()
-
-def percentage_hist(values, lat_name, output):
-    max_value = max(values)
-    bin_width = 100
-    bins = np.arange(0, max_value + bin_width, bin_width)
-
-    hist, bin_edges = np.histogram(values, bins=bins)
-    percentages = (hist / len(values)) * 100
-
-    bin_labels = [f'{int(bins[i])}-{int(bins[i+1])}' for i in range(len(bins)-1)]
-
-    plt.figure(figsize=(10, 6))
-    bars = plt.bar(bin_labels, percentages, color='skyblue')
-
-    for bar, percentage in zip(bars, percentages):
-        height = bar.get_height()
-        plt.text(bar.get_x() + bar.get_width() / 2.0, height, f'{percentage:.2f}%', ha='center', va='bottom')
-
-    plt.xlabel('Latency (µs)')
-    plt.ylabel('Percentage')
-    plt.title(f'Percentage distribution of {lat_name} latencies')
-    plt.xticks(rotation=45)
-    plt.tight_layout()
-    plt.savefig(f"{output}/percentage_hist_{lat_name}.png")
     plt.close()
 
 def generate_adoc(pub, hyp, sub, output, ttot, tnet):
@@ -228,23 +185,20 @@ def generate_adoc(pub, hyp, sub, output, ttot, tnet):
         save_sv_lat_threshold("hypervisor pacing", hyp_pacing, hyp_sv, hyp_pacing_exceeding_threshold, output)
         save_sv_lat_threshold("subscriber pacing", sub_pacing, sub_sv, sub_pacing_exceeding_threshold, output)
 
-        filename = save_histogram("latency", total_latencies,"total latency",output)
-        filename = save_histogram("latency", network_latencies,"network latency",output)
-        plot_stream(stream_name,"latency", total_latencies, "total latency", output)
-        plot_stream(stream_name,"latency", network_latencies, "network latency", output)
-        plot_cdf(total_latencies, output)
+        total_lat_filename = save_histogram("latency", total_latencies,"total",output)
+        plot_stream(stream_name,"latency", total_latencies, "total", output)
 
-        save_histogram("Pacing", pub_pacing,"publisher",output)
-        plot_stream(stream_name,"Pacing", pub_pacing, "publisher", output)
+        save_histogram("latency", network_latencies,"network",output)
+        plot_stream(stream_name,"latency", network_latencies, "network", output)
 
-        save_histogram("Pacing", hyp_pacing,"hypervisor",output)
-        plot_stream(stream_name,"Pacing", hyp_pacing, "hypervisor", output)
+        save_histogram("pacing", pub_pacing,"publisher",output)
+        plot_stream(stream_name,"pacing", pub_pacing, "publisher", output)
 
-        save_histogram("Pacing", sub_pacing,"subscriber",output)
-        plot_stream(stream_name,"Pacing", sub_pacing, "subscriber", output)
-        percentage_hist(sub_pacing,"subscriber",output)
-        percentage_hist(pub_pacing,"publisher",output)
-        percentage_hist(hyp_pacing,"hypervisor",output)
+        save_histogram("pacing", hyp_pacing,"hypervisor",output)
+        plot_stream(stream_name,"pacing", hyp_pacing, "hypervisor", output)
+
+        save_histogram("pacing", sub_pacing,"subscriber",output)
+        plot_stream(stream_name,"pacing", sub_pacing, "subscriber", output)
 
         adoc_file.write(
                 sub_latency_block.format(
@@ -256,7 +210,7 @@ def generate_adoc(pub, hyp, sub, output, ttot, tnet):
                     _neglat_ = compute_neglat(total_latencies),
                     _size_ = compute_size(total_latencies),
                     _neg_percentage_ = np.round(compute_neglat(total_latencies) / compute_size(total_latencies),5) *100,
-                    _output_= filename,
+                    _output_= total_lat_filename,
                     _Ttot_ = ttot,
                     _lat_Ttot_ = len(total_lat_exceeding_threshold)
                 )
@@ -283,7 +237,6 @@ def generate_adoc(pub, hyp, sub, output, ttot, tnet):
                     _sub_minpace_= compute_min(sub_pacing),
                     _sub_maxpace_= compute_max(sub_pacing),
                     _sub_avgpace_= compute_average(sub_pacing),
-                    _output_= filename
                 )
         )
 if __name__ == "__main__":
