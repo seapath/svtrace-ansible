@@ -49,6 +49,7 @@
   hosts:
     - publisher
     - subscriber
+    - hypervisors
   tasks:
       - name: Send SV timestamp logger
         copy:

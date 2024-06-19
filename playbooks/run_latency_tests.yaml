@@ -72,6 +72,7 @@
   hosts:
     - publisher
     - subscriber
+    - hypervisors
   tasks:
       - name : Run SV timestamp logger container
         command:
@@ -103,6 +104,7 @@
   hosts:
     - publisher
     - subscriber
+    - hypervisors
   tasks:
       - name: Stop SV timestamp logger
         command:
@@ -201,13 +203,16 @@
     - name: Set publisher host variable
       set_fact:
         publisher_sv_file: "{{ hostvars[groups['publisher'][0]].sv_file }}"
+        hypervisor_sv_file: "{{ hostvars[groups['hypervisors'][0]].sv_file }}"
     - name: Generate latency report
       command:
         python3 ../files/scripts/generate_latency_report.py  \
         -s ../tests_results/data/{{ hostvars[item].sv_file }} \
+        -y ../tests_results/data/{{ hypervisor_sv_file }} \
         -p ../tests_results/data/{{ publisher_sv_file }} \
         -o ../tests_results \
-        --ttot {{ Ttot }}
+        --ttot {{ Ttot }} \
+        --tnet {{ Tres }}
       with_items: "{{ groups['subscriber'] }}"
     - name: Generate phc2sys plots
       command:
