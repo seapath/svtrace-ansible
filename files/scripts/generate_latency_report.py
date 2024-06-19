@@ -162,11 +162,11 @@ def percentage_hist(values, lat_name, output):
     plt.savefig(f"{output}/percentage_hist_{lat_name}.png")
     plt.close()
 
-def generate_adoc(pub, sub, output, ttot):
+def generate_adoc(pub, hyp, sub, output, ttot, tnet):
     sub_name = sub.split("_")[4]
     with open(f"{output}/{ADOC_FILE_PATH}", "w", encoding="utf-8") as adoc_file:
         adoc_file.write("== Latency tests\n")
-        latency_block = textwrap.dedent(
+        sub_latency_block = textwrap.dedent(
                 """
                 === Subscriber {_sub_name_} latency test on {_size_} samples value
                 |===
@@ -176,6 +176,17 @@ def generate_adoc(pub, sub, output, ttot):
                 |Number of latencies > {_Ttot_}us {_lat_Ttot_}
                 |===
                 image::{_output_}/latency_histogram_{_sub_name_}.png[]
+                """
+        )
+
+        network_latency_block = textwrap.dedent(
+                """
+                === Network latency
+                |===
+                |Minimum latency |Maximum latency |Average latency
+                |{_minnetlat_} us |{_maxnetlat_} us |{_avgnetlat_} us
+                |Number of latencies > {_Tnet_}us {_lat_Tnet_}
+                |===
                 """
         )
 
@@ -191,20 +202,27 @@ def generate_adoc(pub, sub, output, ttot):
         )
 
         pub_sv = extract_sv(pub)
+        hyp_sv = extract_sv(hyp)
         sub_sv = extract_sv(sub)
-        stream_name, latencies = compute_latency(pub_sv, sub_sv)
+        stream_name, total_latencies = compute_latency(pub_sv, sub_sv)
+        _, network_latencies = compute_latency(pub_sv, hyp_sv)
         pub_pacing, sub_pacing = compute_pacing(pub_sv, sub_sv)
-        total_lat_exceeding_threshold = compute_lat_threshold(latencies, ttot)
+        #TODO : hyp pacing
+        total_lat_exceeding_threshold = compute_lat_threshold(total_latencies, ttot)
+        network_lat_exceeding_threshold = compute_lat_threshold(network_latencies, tnet)
         pub_pacing_exceeding_threshold = compute_lat_threshold(pub_pacing, 280)
         sub_pacing_exceeding_threshold = compute_lat_threshold(sub_pacing, 280)
 
-        save_sv_lat_threshold("total latency", latencies, pub_sv,  total_lat_exceeding_threshold, output)
+        save_sv_lat_threshold("total latency", total_latencies, pub_sv,  total_lat_exceeding_threshold, output)
+        save_sv_lat_threshold("network latency", network_latencies, pub_sv,  network_lat_exceeding_threshold, output)
         save_sv_lat_threshold("publisher pacing", pub_pacing, pub_sv, pub_pacing_exceeding_threshold, output)
         save_sv_lat_threshold("subscriber pacing", sub_pacing, sub_sv, sub_pacing_exceeding_threshold, output)
 
-        filename = save_histogram("latency", latencies,"total latency",output)
-        plot_stream(stream_name,"latency", latencies, "total latency", output)
-        plot_cdf(latencies, output)
+        filename = save_histogram("latency", total_latencies,"total latency",output)
+        filename = save_histogram("latency", network_latencies,"network latency",output)
+        plot_stream(stream_name,"latency", total_latencies, "total latency", output)
+        plot_stream(stream_name,"latency", network_latencies, "network latency", output)
+        plot_cdf(total_latencies, output)
 
         save_histogram("Pacing", pub_pacing,"publisher",output)
         plot_stream(stream_name,"Pacing", pub_pacing, "publisher", output)
@@ -215,18 +233,28 @@ def generate_adoc(pub, sub, output, ttot):
         percentage_hist(pub_pacing,"publisher",output)
 
         adoc_file.write(
-                latency_block.format(
+                sub_latency_block.format(
                     _sub_name_=sub_name,
                     _stream_= get_stream_count(output),
-                    _minlat_= compute_min(latencies),
-                    _maxlat_= compute_max(latencies),
-                    _avglat_= compute_average(latencies),
-                    _neglat_ = compute_neglat(latencies),
-                    _size_ = compute_size(latencies),
-                    _neg_percentage_ = np.round(compute_neglat(latencies) / compute_size(latencies),5) *100,
+                    _minlat_= compute_min(total_latencies),
+                    _maxlat_= compute_max(total_latencies),
+                    _avglat_= compute_average(total_latencies),
+                    _neglat_ = compute_neglat(total_latencies),
+                    _size_ = compute_size(total_latencies),
+                    _neg_percentage_ = np.round(compute_neglat(total_latencies) / compute_size(total_latencies),5) *100,
                     _output_= filename,
                     _Ttot_ = ttot,
                     _lat_Ttot_ = len(total_lat_exceeding_threshold)
+                )
+        )
+
+        adoc_file.write(
+                network_latency_block.format(
+                    _minnetlat_= compute_min(network_latencies),
+                    _maxnetlat_= compute_max(network_latencies),
+                    _avgnetlat_= compute_average(network_latencies),
+                    _Tnet_ = tnet,
+                    _lat_Tnet_ = len(network_lat_exceeding_threshold)
                 )
         )
 
@@ -244,9 +272,11 @@ def generate_adoc(pub, sub, output, ttot):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate Latency tests report in AsciiDoc format.")
     parser.add_argument("--pub", "-p", type=str, required=True, help="SV publisher file")
+    parser.add_argument("--hyp", "-y", type=str, required=True, help="SV hypervisor file")
     parser.add_argument("--sub", "-s", type=str, required=True, help="SV subscriber file")
     parser.add_argument("--output", "-o", default="../results/", type=str, help="Output directory for the generated files.")
     parser.add_argument("--ttot", default=100, type=int, help="Total latency threshold.")
+    parser.add_argument("--tnet", default=100, type=int, help="Network latency threshold.")
 
     args = parser.parse_args()
-    generate_adoc(args.pub, args.sub, args.output, args.ttot)
+    generate_adoc(args.pub, args.hyp, args.sub, args.output, args.ttot, args.tnet)
