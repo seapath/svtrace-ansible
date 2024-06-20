@@ -1,21 +1,19 @@
 BEGIN
 {
   @sv_ether_proto = (uint64)47752;
-  @t3 = (uint64)0;
+  @old_sv_counter = (uint64)1096;
+
   @tsub_threshold = (uint64)$1;
   @sv_iteration = 0;
 }
 
 kprobe:tpacket_rcv
 {
-  $skb = (struct sk_buff *)arg0;
-  $data_sv_counter = $skb->head + $skb->mac_header;
-  $data_sv_counter += 51;
-  $sv_counter = (uint64)0;
+  $skb = (struct sk_buff*)arg0;
   $protocol = $skb->protocol;
-  if ($protocol == @sv_ether_proto) {
+  $sv_counter = (uint64)0;
 
-    @t3 = nsecs(tai);
+  if ($protocol == @sv_ether_proto) {
     $data_sv_counter = $skb->head + $skb->mac_header;
     $data_sv_counter += 51;
 
@@ -23,6 +21,8 @@ kprobe:tpacket_rcv
       $sv_counter = ($sv_counter << 8) + *(uint8 *)$data_sv_counter;
       $data_sv_counter += 1;
     }
+
+    @t3[$sv_counter, @sv_iteration] = nsecs(tai);
 
     if($sv_counter != @old_sv_counter){
       if($sv_counter < @old_sv_counter){
@@ -35,15 +35,25 @@ kprobe:tpacket_rcv
 
 kprobe:tpacket_get_timestamp
 {
-  $skb = (struct sk_buff *)arg0;
+  $skb = (struct sk_buff*)arg0;
   $protocol = $skb->protocol;
+  $sv_counter = (uint64)0;
 
   if ($protocol == @sv_ether_proto) {
+    $data_sv_counter = $skb->head + $skb->mac_header;
+    $data_sv_counter += 51;
+
+    unroll(2) {
+      $sv_counter = ($sv_counter << 8) + *(uint8 *)$data_sv_counter;
+      $data_sv_counter += 1;
+    }
+
     $t4 = nsecs(tai);
-    $tsub = ($t4 - @t3)/1000;
+    $tsub = ($t4 - @t3[$sv_counter, @sv_iteration])/1000;
+    delete(@t3[$sv_counter, @sv_iteration]);
 
     if ($tsub >= @tsub_threshold){
-      printf("SV %d-%d Tsub %-lluus\n", @sv_iteration, @old_sv_counter, $tsub);
+      printf("SV %d-%d Tsub %-lluus\n", @sv_iteration, $sv_counter, $tsub);
     }
   }
 }
