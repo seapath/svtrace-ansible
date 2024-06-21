@@ -99,11 +99,13 @@ def save_histogram(plot_type, values, sub_name, output):
     # Save the plot
     if not os.path.exists(output):
         os.makedirs(output)
-    filename = os.path.realpath(f"{output}/histogram_{plot_type}_{sub_name}.png")
-    plt.savefig(filename)
-    print(f"Histogram saved as 'histogram_{plot_type}_{sub_name}.png'.")
+    filename = f"histogram_{sub_name}_{plot_type}.png"
+    filepath = os.path.realpath(f"{output}/{filename}")
+    plt.savefig(filepath)
+    print(f"Histogram saved as {filename}.")
     plt.close()
-    return filename
+
+    return filepath
 
 def plot_stream(stream_name, plot_type, values, lat_name, output):
     plt.plot(range(len(values)), values)
@@ -112,12 +114,15 @@ def plot_stream(stream_name, plot_type, values, lat_name, output):
     plt.title(f'{lat_name} {plot_type} over time, Stream: {stream_name}')
 
     lat_name = lat_name.replace(" ", "_")
-    plt.savefig(f"{output}/plot_{plot_type}_{lat_name}.png")
-    print(f"Plot saved as 'plot_{plot_type}_{lat_name}.png'.")
+
+    filename = f"plot_{lat_name}_{plot_type}.png"
+    filepath = os.path.realpath(f"{output}/{filename}")
+    plt.savefig(filepath)
+    print(f"Plot saved as {filename}.")
     plt.close()
 
 def generate_adoc(pub, hyp, sub, output, ttot):
-    sub_name = sub.split("_")[2]
+    sub_name = sub.split("_")[3]
     with open(f"{output}/{ADOC_FILE_PATH}", "w", encoding="utf-8") as adoc_file:
 
         total_latency_block = textwrap.dedent(
@@ -180,11 +185,11 @@ def generate_adoc(pub, hyp, sub, output, ttot):
         hyp_pacing_exceeding_threshold = compute_lat_threshold(hyp_pacing, 280)
         sub_pacing_exceeding_threshold = compute_lat_threshold(sub_pacing, 280)
 
-        save_sv_lat_threshold("total latency", total_latencies, pub_sv,  total_lat_exceeding_threshold, output)
-        save_sv_lat_threshold("seapath latency", seapath_latencies, pub_sv,  seapath_lat_exceeding_threshold, output)
-        save_sv_lat_threshold("publisher pacing", pub_pacing, pub_sv, pub_pacing_exceeding_threshold, output)
-        save_sv_lat_threshold("hypervisor pacing", hyp_pacing, hyp_sv, hyp_pacing_exceeding_threshold, output)
-        save_sv_lat_threshold("subscriber pacing", sub_pacing, sub_sv, sub_pacing_exceeding_threshold, output)
+        save_sv_lat_threshold("total_latency", total_latencies, pub_sv,  total_lat_exceeding_threshold, output)
+        save_sv_lat_threshold("seapath_latency", seapath_latencies, pub_sv,  seapath_lat_exceeding_threshold, output)
+        save_sv_lat_threshold("publisher_pacing", pub_pacing, pub_sv, pub_pacing_exceeding_threshold, output)
+        save_sv_lat_threshold("hypervisor_pacing", hyp_pacing, hyp_sv, hyp_pacing_exceeding_threshold, output)
+        save_sv_lat_threshold("subscriber_pacing", sub_pacing, sub_sv, sub_pacing_exceeding_threshold, output)
 
         total_lat_filename = save_histogram("latency", total_latencies,"total",output)
         plot_stream(stream_name,"latency", total_latencies, "total", output)
