@@ -1,10 +1,12 @@
 BEGIN
 {
   @sv_ether_proto = (uint64)47752;
-  @old_sv_counter = (uint64)1096;
+  @old_sv_counter_tpacket_rcv = (uint64)1096;
+  @old_sv_counter_tpacket_get_timestamp = (uint64)1096;
 
   @tsub_threshold = (uint64)$1;
-  @sv_iteration = 0;
+  @sv_iteration_tpacket_rcv = 0;
+  @sv_iteration_tpacket_get_timestamp = 0;
 }
 
 kprobe:tpacket_rcv
@@ -22,13 +24,13 @@ kprobe:tpacket_rcv
       $data_sv_counter += 1;
     }
 
-    @t3[$sv_counter, @sv_iteration] = nsecs(tai);
+    @t3[$sv_counter, @sv_iteration_tpacket_rcv] = nsecs(tai);
 
-    if($sv_counter != @old_sv_counter){
-      if($sv_counter < @old_sv_counter){
-        @sv_iteration += 1;
+    if($sv_counter != @old_sv_counter_tpacket_rcv){
+      if($sv_counter < @old_sv_counter_tpacket_rcv){
+        @sv_iteration_tpacket_rcv += 1;
       }
-      @old_sv_counter = $sv_counter;
+      @old_sv_counter_tpacket_rcv = $sv_counter;
     }
   }
 }
@@ -49,11 +51,18 @@ kprobe:tpacket_get_timestamp
     }
 
     $t4 = nsecs(tai);
-    $tsub = ($t4 - @t3[$sv_counter, @sv_iteration])/1000;
-    delete(@t3[$sv_counter, @sv_iteration]);
+    $tsub = ($t4 - @t3[$sv_counter, @sv_iteration_tpacket_get_timestamp])/1000;
+    delete(@t3[$sv_counter, @sv_iteration_tpacket_get_timestamp]);
+
+    if($sv_counter != @old_sv_counter_tpacket_get_timestamp){
+      if($sv_counter < @old_sv_counter_tpacket_get_timestamp){
+        @sv_iteration_tpacket_get_timestamp += 1;
+      }
+      @old_sv_counter_tpacket_get_timestamp = $sv_counter;
+    }
 
     if ($tsub >= @tsub_threshold){
-      printf("SV %d-%d Tsub %-lluus\n", @sv_iteration, $sv_counter, $tsub);
+      printf("SV %d-%d Tsub %-lluus\n", @sv_iteration_tpacket_get_timestamp, $sv_counter, $tsub);
     }
   }
 }

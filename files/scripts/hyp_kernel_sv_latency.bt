@@ -1,12 +1,14 @@
 BEGIN
 {
   @sv_ether_proto = (uint64)47752;
-  @old_sv_counter = (uint64)1096;
+  @old_sv_counter_skb_push = (uint64)1096;
+  @old_sv_counter_consume_skb = (uint64)1096;
 
   @sv_irq_interface_pid = (uint64)$1;
   @vhost_pid = (uint64)$2;
   @thyp_threshold = (uint64)$3;
-  @sv_iteration = 0;
+  @sv_iteration_skb_push = 0;
+  @sv_iteration_consume_skb = 0;
 }
 
 kprobe:skb_push
@@ -25,13 +27,13 @@ kprobe:skb_push
         $data_sv_counter += 1;
       }
 
-      @t1[$sv_counter, @sv_iteration] = nsecs(tai);
+      @t1[$sv_counter, @sv_iteration_skb_push] = nsecs(tai);
 
-      if($sv_counter != @old_sv_counter){
-        if($sv_counter < @old_sv_counter){
-          @sv_iteration += 1;
+      if($sv_counter != @old_sv_counter_skb_push){
+        if($sv_counter < @old_sv_counter_skb_push){
+          @sv_iteration_skb_push += 1;
         }
-        @old_sv_counter = $sv_counter;
+        @old_sv_counter_skb_push = $sv_counter;
       }
     }
   }
@@ -54,11 +56,18 @@ kprobe:consume_skb
       }
 
       $t2 = nsecs(tai);
-      $thyp = ($t2 - @t1[$sv_counter, @sv_iteration])/1000;
-      delete(@t1[$sv_counter, @sv_iteration]);
+      $thyp = ($t2 - @t1[$sv_counter, @sv_iteration_consume_skb])/1000;
+      delete(@t1[$sv_counter, @sv_iteration_consume_skb]);
+
+      if($sv_counter != @old_sv_counter_consume_skb){
+        if($sv_counter < @old_sv_counter_consume_skb){
+          @sv_iteration_consume_skb += 1;
+        }
+        @old_sv_counter_consume_skb = $sv_counter;
+      }
 
       if ($thyp >= @thyp_threshold){
-        printf("SV %d-%d Thyp %-lluus\n", @sv_iteration, $sv_counter, $thyp);
+        printf("SV %d-%d Thyp %-lluus\n", @sv_iteration_consume_skb, $sv_counter, $thyp);
       }
     }
   }
