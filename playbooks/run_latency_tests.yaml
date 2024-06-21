@@ -214,8 +214,7 @@
         -y ../tests_results/data/ts_sv_{{ hypervisor_name }} \
         -p ../tests_results/data/ts_sv_{{ publisher_name }} \
         -o ../tests_results \
-        --ttot {{ Ttot }} \
-        --tnet {{ Tres }}
+        --ttot {{ Ttot }}
       with_items: "{{ groups['subscriber'] }}"
     - name: Generate phc2sys plots
       command:
