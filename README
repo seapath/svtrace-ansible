@@ -84,6 +84,14 @@ exposed with file `/proc/sys/kernel/kptr_restrict`.
 
 ## Configuration
 ###  Time synchronization
+#### Network cards
+
+In order to properly log the Seapath latency, the clock of the network card receiving the Sample Values must be synchronized in PTP. This is done :
+- Automatically if you use the same network card to receive the PTP frames and the SV
+- Manually, using phc2sys to synchronise the SV network card with the PTP one
+
+This is **not done by Ansible and must be handled by the user**
+
 #### System
 
 For achieving high accuracy latency measure each machine must be
@@ -117,14 +125,6 @@ sure `ptp_manual_configuration` is defined.
 ```bash
 cqfd -b configure_tests
 ```
-
-#### Network cards
-
-In order to properly log the network latency, the clock of the network card receiving the Sample Values must be synchronized in PTP. This is done :
-- Automatically if you use the same network card to receive the PTP frames and the SV
-- Manually, using phc2sys to synchronise the SV network card with the PTP one
-
-This is **not done by Ansible and must be configured manually**
 
 ### Synchronizing
 
