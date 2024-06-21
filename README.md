@@ -166,3 +166,10 @@ For CI purpose, you can also use the `launch_tests.sh` script.
 * Configuration of the target
 * Hypervisor, subscriber, and total latency measurement
 * Generation of plot results and .adoc report
+
+### Version v0.2
+
+* Add an iteration counter to identify each SV as unique no matter the time of the test
+* Correct a bug where some sample values appeared as duplicated in bpftrace logs
+* Introduce and automate the computation of Tseapath
+* Add Ttot selection in `vars/threshold.yaml`
