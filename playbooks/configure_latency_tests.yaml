@@ -30,6 +30,13 @@
         notify:
           Enable phc2sys.service
         when: ptp_manual_configuration is defined and ptp_manual_configuration|bool == true
+      - name: Send phc2nic.service
+        template:
+          src: ../files/templates/phc2nic.service.j2
+          dest: /etc/systemd/system/phc2nic.service
+        notify:
+          Enable phc2nic.service
+        when: ptp_manual_configuration is defined and ptp_manual_configuration|bool == true
   handlers:
       - name: Enable ptp4l.service
         ansible.builtin.systemd:
@@ -40,6 +47,12 @@
       - name: Enable phc2sys.service
         ansible.builtin.systemd:
           service: phc2sys.service
+          enabled: true
+          state: restarted
+          daemon_reload: true
+      - name: Enable phc2nic.service
+        ansible.builtin.systemd:
+          service: phc2nic.service
           enabled: true
           state: restarted
           daemon_reload: true

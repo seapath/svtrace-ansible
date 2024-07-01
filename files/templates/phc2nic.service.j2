@@ -1,0 +1,16 @@
+[Install]
+WantedBy=multi-user.target
+
+[Unit]
+Description=Synchronize NIC PTP hardware clock (PHC)
+Documentation=man:phc2sys
+Requires=ptp4l.service
+After=ptp4l.service
+Before=time-sync.target
+
+[Service]
+Type=simple
+ExecStart=phc2sys -w -s /dev/ptp1 -c /dev/ptp0 -r -O 0 -E linreg
+
+[Install]
+WantedBy=multi-user.target
