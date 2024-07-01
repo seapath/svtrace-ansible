@@ -28,18 +28,11 @@
   vars_files:
     - ../vars/threshold.yaml
   tasks:
-      - name : Run bpftrace container
-        command:
-          docker run --privileged \
-          -d \
-          --name bpftrace \
-          --rm \
-          --cpuset-cpus={{ bpftrace_core }} \
-          -v /sys/kernel/debug:/sys/kernel/debug:ro \
-          -v /tmp:/tmp \
-          -v /proc:/proc \
-          bpftrace \
-          /tmp/launch_bpftrace.sh hypervisors {{ Thyp }}
+      - name : Run bpftrace script
+        shell:
+          taskset -c {{ bpftrace_core }} /tmp/launch_bpftrace.sh hypervisors {{ Thyp }} > /tmp/thyp
+        async: 9999999
+        poll: 0
         when: enable_bpftrace is defined and enable_bpftrace|bool == true
 - name: Launch bpftrace on subscriber
   become: true
@@ -48,18 +41,11 @@
   vars_files:
     - ../vars/threshold.yaml
   tasks:
-      - name : Run bpftrace container
-        command:
-          docker run --privileged \
-          -d \
-          --name bpftrace \
-          --rm \
-          --cpuset-cpus={{ bpftrace_core }} \
-          -v /sys/kernel/debug:/sys/kernel/debug:ro \
-          -v /tmp:/tmp \
-          -v /proc:/proc \
-          bpftrace \
-          /tmp/launch_bpftrace.sh subscriber {{ Tsub }}
+      - name : Run bpftrace script
+        shell:
+          taskset -c {{ bpftrace_core }} /tmp/launch_bpftrace.sh subscriber {{ Tsub }} > /tmp/tsub
+        async: 9999999
+        poll: 0
         when: enable_bpftrace is defined and enable_bpftrace|bool == true
       - name: Make sure bpftrace has time to start
         wait_for:
@@ -135,38 +121,28 @@
   hosts:
     - hypervisors
   tasks:
-      - name: Extract bpftrace log
-        shell:
-          cmd: >-
-            docker logs bpftrace > /tmp/thyp
-        when: enable_bpftrace is defined and enable_bpftrace|bool == true
       - name: Fetch bpftrace log
         synchronize:
           src: /tmp/thyp
           dest: ../tests_results/latency/
           mode: pull
         when: enable_bpftrace is defined and enable_bpftrace|bool == true
-      - name: Stop bpftrace container
-        command: docker stop bpftrace
+      - name: Stop bpftrace script
+        command: pkill bpftrace
         when: enable_bpftrace is defined and enable_bpftrace|bool == true
 - name: Cleanup bpftrace on subscriber
   become: true
   hosts:
     - subscriber
   tasks:
-      - name: Extract bpftrace log
-        shell:
-          cmd: >-
-            docker logs bpftrace > /tmp/tsub
-        when: enable_bpftrace is defined and enable_bpftrace|bool == true
       - name: Fetch bpftrace log
         synchronize:
           src: /tmp/tsub
           dest: ../tests_results/latency/
           mode: pull
         when: enable_bpftrace is defined and enable_bpftrace|bool == true
-      - name: Stop bpftrace container
-        command: docker stop bpftrace
+      - name: Stop bpftrace script
+        command: pkill bpftrace
         when: enable_bpftrace is defined and enable_bpftrace|bool == true
 
 - name: Fetch logs

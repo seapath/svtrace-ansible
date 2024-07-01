@@ -77,12 +77,11 @@
     - hypervisors
     - subscriber
   tasks:
-      - name: Send bpftrace
-        copy:
-          src: ../files/docker/bpftrace/bpftrace.tar
-          dest: /tmp/bpftrace.tar
-      - name: Load bpftrace
-        command: docker image load -i /tmp/bpftrace.tar
+      - name: Get bpftrace
+        get_url:
+          url: https://github.com/bpftrace/bpftrace/releases/download/v0.20.4/bpftrace
+          dest: /tmp/bpftrace
+          mode: 0777
       - name: Send bpftrace script
         copy:
           src: ../files/scripts/{{ bpftrace_script }}.bt
