@@ -7,7 +7,11 @@ import numpy as np
 ADOC_FILE_PATH = f"latency-tests-report.adoc"
 
 def compute_pacing(sv):
-    return np.diff(sv[3])
+    streams = len(sv)
+    pacing = [[0]] * len(sv)
+    for stream in range(0, streams):
+        pacing[stream] = np.diff(sv[stream][2])
+    return pacing
 
 def detect_sv_drop(sv_counter):
     diffs = np.diff(sv_counter)
@@ -19,39 +23,60 @@ def detect_sv_drop(sv_counter):
     return discontinuities
 
 def compute_latency(pub_sv, sub_sv):
+    latencies = [[0]] * len(pub_sv)
+
     # Detect discontinuities
-    pub_discontinuities = detect_sv_drop(pub_sv[2])
-    sub_discontinuities = detect_sv_drop(sub_sv[2])
 
-    if sub_discontinuities[0].size > 0:
-        sv_discontinuities = np.where(sub_discontinuities[2] > 0)
+    for stream in range(0, len(pub_sv)):
+        if len(pub_sv[stream][1]) != len(sub_sv[stream][1]):
+            pub_discontinuities = detect_sv_drop(pub_sv[stream][1])
+            sub_discontinuities = detect_sv_drop(sub_sv[stream][1])
 
-        for sv_discontinuity in sv_discontinuities[0]:
-            sv_dropped = sub_discontinuities[1][sv_discontinuity]
+            if sub_discontinuities[0].size > 0:
+                sv_discontinuities = np.where(sub_discontinuities[1] > 0)
 
-            for sv in range(0, sv_dropped):
-                print(f"Warning: SV {pub_sv_cnt[sv_discontinuity+1]} dropped in subscriber data")
-                pub_timestamps = np.delete(pub_timestamps,sv_discontinuity+1)
-                pub_sv_cnt = np.delete(pub_sv_cnt,sv_discontinuity+1)
+                for sv_discontinuity in sv_discontinuities[0]:
+                    sv_dropped = sub_discontinuities[1][sv_discontinuity]
 
-    latencies = sub_sv[3] - pub_sv[3]
+                    for sv in range(0, sv_dropped):
+                        print(f"Warning: SV {pub_sv[stream][1][sv_discontinuity+1]} dropped in subscriber data")
+                        pub_sv[stream][0] = np.delete(pub_sv[stream][0],sv_discontinuity+1)
+                        pub_sv[stream][1] = np.delete(pub_sv[stream][1],sv_discontinuity+1)
+                        pub_sv[stream][2] = np.delete(pub_sv[stream][2],sv_discontinuity+1)
 
-    stream_name = pub_sv[0][0]
+        latencies[stream] = sub_sv[stream][2] - pub_sv[stream][2]
+
+        stream_name = stream
 
     return stream_name, latencies
 
 
 def extract_sv(sv_file_path):
-
+    stream_number = 0
     with open(f"{sv_file_path}", "r", encoding="utf-8") as sv_file:
         sv_content = sv_file.read().splitlines()
 
-    sv_it = np.array([str(item.split(":")[0]) for item in sv_content])
     sv_id = np.array([str(item.split(":")[1]) for item in sv_content])
+    stream_names = np.unique(sv_id)
+
+    # Initialize sv as a list of empty lists
+    sv = [[] * len(stream_names)]
+
+    sv_it = np.array([str(item.split(":")[0]) for item in sv_content])
     sv_cnt = np.array([int(item.split(":")[2]) for item in sv_content])
     sv_timestamps = np.array([int(item.split(":")[3]) for item in sv_content])
 
-    sv = [sv_it, sv_id, sv_cnt, sv_timestamps]
+    for items in stream_names:
+        id_occurrences = np.where(sv_id == items)
+
+        sv_it_occurrences = sv_it[id_occurrences]
+        sv_cnt_occurrences = sv_cnt[id_occurrences]
+        sv_timestamps_occurrences = sv_timestamps[id_occurrences]
+
+        # Append a new sublist containing the three arrays
+        sv[stream_number] = [sv_it_occurrences, sv_cnt_occurrences, sv_timestamps_occurrences]
+
+        stream_number += 1
 
     return sv
 
@@ -71,55 +96,69 @@ def compute_neglat(values):
     return np.count_nonzero(values < 0)
 
 def compute_lat_threshold(values, threshold):
-    indices_exceeding_threshold = np.where(values > threshold)[0]
+    streams = len(values)
+    indices_exceeding_threshold = [[0]] * len(values)
+    for stream in range(0, streams):
+        indices_exceeding_threshold[stream] = np.where(values[stream] > threshold)[0]
     return indices_exceeding_threshold
 
 def save_sv_lat_threshold(data_type, latencies, SVs, indices_exceeding_threshold, output):
-    file_name = f"{output}/sv_{data_type}_exceed"
-    with open(file_name, "w", encoding="utf-8") as sv_lat_exceed_file:
-        for exceeding_lat in indices_exceeding_threshold:
-            iteration = SVs[0][exceeding_lat]
-            sv_cnt = SVs[2][exceeding_lat]
-            latency = latencies[exceeding_lat]
-            sv_lat_exceed_file.write(f"SV {iteration}-{sv_cnt} {latency}us\n")
+    streams = len(SVs)
+
+    for stream in range(0, streams):
+
+        file_name = f"{output}/sv_{data_type}_exceed_stream_{stream}"
+
+        with open(file_name, "w", encoding="utf-8") as sv_lat_exceed_file:
+            for exceeding_lat in indices_exceeding_threshold[stream]:
+                iteration = SVs[stream][2][exceeding_lat]
+                sv_cnt = SVs[stream][1][exceeding_lat]
+                latency = latencies[stream][exceeding_lat]
+                sv_lat_exceed_file.write(f"SV {iteration}-{stream}-{sv_cnt} {latency}us\n")
 
 def compute_size(values):
     return np.size(values)
 
 def save_histogram(plot_type, values, sub_name, output):
-    # Plot latency histograms
-    plt.hist(values, bins=20, alpha=0.7)
+    streams = len(values)
 
-    # Add titles and legends
-    plt.xlabel(f"{plot_type} (us)")
-    plt.ylabel("Occurrences")
-    plt.yscale('log')
-    plt.title(f"{sub_name} {plot_type} Histogram")
+    for stream in range(0, streams):
+        # Plot latency histograms
+        plt.hist(values[stream], bins=20, alpha=0.7)
 
-    # Save the plot
-    if not os.path.exists(output):
-        os.makedirs(output)
-    filename = f"histogram_{sub_name}_{plot_type}.png"
-    filepath = os.path.realpath(f"{output}/{filename}")
-    plt.savefig(filepath)
-    print(f"Histogram saved as {filename}.")
-    plt.close()
+        # Add titles and legends
+        plt.xlabel(f"{plot_type} (us)")
+        plt.ylabel("Occurrences")
+        plt.yscale('log')
+        plt.title(f"{sub_name} {plot_type} Histogram")
+
+        # Save the plot
+        if not os.path.exists(output):
+            os.makedirs(output)
+        filename = f"histogram_{sub_name}_stream_{stream}_{plot_type}.png"
+        filepath = os.path.realpath(f"{output}/{filename}")
+        plt.savefig(filepath)
+        print(f"Histogram saved as {filename}.")
+        plt.close()
 
     return filepath
 
 def plot_stream(stream_name, plot_type, values, lat_name, output):
-    plt.plot(range(len(values)), values)
-    plt.xlabel("Samples value")
-    plt.ylabel(f'{plot_type} (µs)')
-    plt.title(f'{lat_name} {plot_type} over time, Stream: {stream_name}')
+    streams = len(values)
 
-    lat_name = lat_name.replace(" ", "_")
+    for stream in range(0, streams):
+        plt.plot(range(len(values[stream])), values[stream])
+        plt.xlabel("Samples value")
+        plt.ylabel(f'{plot_type} (µs)')
+        plt.title(f'{lat_name} {plot_type} over time, Stream: {stream_name}')
 
-    filename = f"plot_{lat_name}_{plot_type}.png"
-    filepath = os.path.realpath(f"{output}/{filename}")
-    plt.savefig(filepath)
-    print(f"Plot saved as {filename}.")
-    plt.close()
+        lat_name = lat_name.replace(" ", "_")
+
+        filename = f"plot_{lat_name}_stream_{stream}_{plot_type}.png"
+        filepath = os.path.realpath(f"{output}/{filename}")
+        plt.savefig(filepath)
+        print(f"Plot saved as {filename}.")
+        plt.close()
 
 def generate_adoc(pub, hyp, sub, output, ttot):
     sub_name = sub.split("_")[3]
@@ -167,7 +206,7 @@ def generate_adoc(pub, hyp, sub, output, ttot):
                 |===
                 |Minimun pacing |Maximum pacing |Average pacing
                 |{_sub_minpace_} us |{_sub_maxpace_} us |{_sub_avgpace_} us
-                |===
+                |===\n
                 """
         )
 
@@ -206,50 +245,55 @@ def generate_adoc(pub, hyp, sub, output, ttot):
         save_histogram("pacing", sub_pacing,"subscriber",output)
         plot_stream(stream_name,"pacing", sub_pacing, "subscriber", output)
 
-        adoc_file.write("== Latency tests on {_size_} samples value\n".format(
-            _size_=compute_size(total_latencies)))
 
-        adoc_file.write(
-                total_latency_block.format(
-                    _sub_name_=sub_name,
-                    _stream_= get_stream_count(output),
-                    _minlat_= compute_min(total_latencies),
-                    _maxlat_= compute_max(total_latencies),
-                    _avglat_= compute_average(total_latencies),
-                    _neglat_ = compute_neglat(total_latencies),
-                    _neg_percentage_ = np.round(compute_neglat(total_latencies) / compute_size(total_latencies),5) *100,
-                    _image_path_= total_lat_filename,
-                    _Ttot_ = ttot,
-                    _lat_Ttot_ = len(total_lat_exceeding_threshold)
-                )
-        )
+        streams = len(pub_sv)
 
-        adoc_file.write(
-                seapath_latency_block.format(
-                    _sub_name_=sub_name,
-                    _minnetlat_= compute_min(seapath_latencies),
-                    _maxnetlat_= compute_max(seapath_latencies),
-                    _avgnetlat_= compute_average(seapath_latencies),
-                    _image_path_= seap_lat_filename,
-                    _Ttot_ = ttot,
-                    _lat_Tseap_ = len(seapath_lat_exceeding_threshold)
-                )
-        )
+        for stream in range(0, streams):
+            adoc_file.write("== Stream {_stream_} Latency tests on {_size_} samples value\n".format(
+                _size_=compute_size(total_latencies[stream]),
+                _stream_=stream))
 
-        adoc_file.write(
-                pacing_block.format(
-                    _sub_name_=sub_name,
-                    _pub_minpace_= compute_min(pub_pacing),
-                    _pub_maxpace_= compute_max(pub_pacing),
-                    _pub_avgpace_= compute_average(pub_pacing),
-                    _hyp_minpace_= compute_min(hyp_pacing),
-                    _hyp_maxpace_= compute_max(hyp_pacing),
-                    _hyp_avgpace_= compute_average(hyp_pacing),
-                    _sub_minpace_= compute_min(sub_pacing),
-                    _sub_maxpace_= compute_max(sub_pacing),
-                    _sub_avgpace_= compute_average(sub_pacing),
-                )
-        )
+            adoc_file.write(
+                    total_latency_block.format(
+                        _sub_name_=sub_name,
+                        _stream_= get_stream_count(output),
+                        _minlat_= compute_min(total_latencies[stream]),
+                        _maxlat_= compute_max(total_latencies[stream]),
+                        _avglat_= compute_average(total_latencies[stream]),
+                        _neglat_ = compute_neglat(total_latencies[stream]),
+                        _neg_percentage_ = np.round(compute_neglat(total_latencies[stream]) / compute_size(total_latencies[stream]),5) *100,
+                        _image_path_= total_lat_filename,
+                        _Ttot_ = ttot,
+                        _lat_Ttot_ = len(total_lat_exceeding_threshold)
+                    )
+            )
+
+            adoc_file.write(
+                    seapath_latency_block.format(
+                        _sub_name_=sub_name,
+                        _minnetlat_= compute_min(seapath_latencies[stream]),
+                        _maxnetlat_= compute_max(seapath_latencies[stream]),
+                        _avgnetlat_= compute_average(seapath_latencies[stream]),
+                        _image_path_= seap_lat_filename,
+                        _Ttot_ = ttot,
+                        _lat_Tseap_ = len(seapath_lat_exceeding_threshold)
+                    )
+            )
+
+            adoc_file.write(
+                    pacing_block.format(
+                        _sub_name_=sub_name,
+                        _pub_minpace_= compute_min(pub_pacing[stream]),
+                        _pub_maxpace_= compute_max(pub_pacing[stream]),
+                        _pub_avgpace_= compute_average(pub_pacing[stream]),
+                        _hyp_minpace_= compute_min(hyp_pacing[stream]),
+                        _hyp_maxpace_= compute_max(hyp_pacing[stream]),
+                        _hyp_avgpace_= compute_average(hyp_pacing[stream]),
+                        _sub_minpace_= compute_min(sub_pacing[stream]),
+                        _sub_maxpace_= compute_max(sub_pacing[stream]),
+                        _sub_avgpace_= compute_average(sub_pacing[stream]),
+                    )
+            )
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate Latency tests report in AsciiDoc format.")
     parser.add_argument("--pub", "-p", type=str, required=True, help="SV publisher file")
