@@ -111,7 +111,7 @@ def save_sv_lat_threshold(data_type, latencies, SVs, indices_exceeding_threshold
 
         with open(file_name, "w", encoding="utf-8") as sv_lat_exceed_file:
             for exceeding_lat in indices_exceeding_threshold[stream]:
-                iteration = SVs[stream][2][exceeding_lat]
+                iteration = SVs[stream][0][exceeding_lat]
                 sv_cnt = SVs[stream][1][exceeding_lat]
                 latency = latencies[stream][exceeding_lat]
                 sv_lat_exceed_file.write(f"SV {iteration}-{stream}-{sv_cnt} {latency}us\n")
