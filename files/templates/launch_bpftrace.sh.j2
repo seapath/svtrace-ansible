@@ -4,6 +4,7 @@ set -e
 
 DEV="$1"
 LAT_THRESHOLD="$2"
+export BPFTRACE_MAX_MAP_KEYS=16384
 
 if [ "$DEV" == "hypervisors" ]; then
     IRQ_SV_PID="$(ps -eo comm,pid|grep "{{ sv_interface }}-T"|head -n1| awk '{print $2}')"
