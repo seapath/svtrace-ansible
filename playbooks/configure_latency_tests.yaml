@@ -68,8 +68,11 @@
         copy:
           src: ../files/docker/sv_timestamp_logger/sv_timestamp_logger.tar
           dest: /tmp/sv_timestamp_logger.tar
+        when: enable_sv_ts is defined and enable_sv_ts|bool == true
+
       - name: Load SV timestamp logger
         command: docker image load -i /tmp/sv_timestamp_logger.tar
+        when: enable_sv_ts is defined and enable_sv_ts|bool == true
 
 - name: Configure bpftrace image
   become: true

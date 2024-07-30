@@ -75,10 +75,13 @@
           -t
           {% endif %}
           --max_SV_cnt 4000
+        when: enable_sv_ts is defined and enable_sv_ts|bool == true
+
       - name: Set FIFO scheduling on SV timestamp logger process
         shell:
           PID=$(ps -eTo comm,pid |grep sv_timestamp_lo|cut -d' ' -f2)
           chrt --fifo -p 1 $PID
+        when: enable_sv_ts is defined and enable_sv_ts|bool == true
 
 - name: Start test
   become: true
@@ -98,23 +101,31 @@
       - name: Stop SV timestamp logger
         command:
           docker stop sv_timestamp_logger
+        when: enable_sv_ts is defined and enable_sv_ts|bool == true
+
       - name: Compute results
         shell:
           cmd: >-
             docker logs sv_timestamp_logger > /tmp/sv_drops
+        when: enable_sv_ts is defined and enable_sv_ts|bool == true
+
       - name: Fetch sv drop
         synchronize:
           src: /tmp/sv_drops
           dest: ../tests_results/data/
           mode: pull
+        when: enable_sv_ts is defined and enable_sv_ts|bool == true
       - name: Remove SV timestamp logger
         command:
           docker rm sv_timestamp_logger
+        when: enable_sv_ts is defined and enable_sv_ts|bool == true
+
       - name: Fetch SV timestamps
         synchronize:
           src: /tmp/ts_sv_{{ inventory_hostname }}
           dest: ../tests_results/data/
           mode: pull
+        when: enable_sv_ts is defined and enable_sv_ts|bool == true
 
 - name: Cleanup bpftrace on hypervisor
   become: true
@@ -188,7 +199,9 @@
         python3 ../files/scripts/generate_latency_report.py  \
         -s ../tests_results/data/ts_sv_{{ hostvars[item].inventory_hostname }} \
         -y ../tests_results/data/ts_sv_{{ hypervisor_name }} \
-        -p ../tests_results/data/ts_sv_{{ publisher_name }} \
+        {% if publisher_name.enable_sv_ts is defined %}
+          -p ../tests_results/data/ts_sv_{{ publisher_name }} \
+        {% endif %}
         -o ../tests_results \
         --ttot {{ Ttot }}
       with_items: "{{ groups['subscriber'] }}"
