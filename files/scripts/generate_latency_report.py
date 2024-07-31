@@ -13,36 +13,65 @@ def compute_pacing(sv):
         pacing[stream] = np.diff(sv[stream][2])
     return pacing
 
-def detect_sv_drop(sv_counter):
-    diffs = np.diff(sv_counter)
-    diffs = diffs - 1
-    discontinuities = np.where(diffs > 0)
+def detect_sv_drop(pub_sv, sub_sv, iteration_size=4000):
+# This function is used to detect if there are any missed SV's in
+# subscriber data, by testing the continuity of the SV counter of
+# subscriber data.
 
-    if discontinuities[0].size > 0:
-        discontinuities = np.stack((sv_counter[:-1],diffs))
-    return discontinuities
+    num_it = len(sub_sv[1]) // iteration_size
+    total_sv_drops = 0
+
+    for iteration in range(num_it):
+        start_index = iteration * iteration_size - total_sv_drops
+        end_index = start_index + iteration_size
+
+        if end_index > len(sub_sv[1]):
+            break
+
+        max_val_current_it = np.max(sub_sv[1][start_index:end_index])
+        index_max_val_current_it = np.where(sub_sv[1][start_index:end_index] == max_val_current_it)[0][0]
+
+        sub_it = sub_sv[1][start_index:start_index + index_max_val_current_it + 1]
+
+        diffs = np.diff(sub_it) - 1
+
+        # Neg diffs indicates that a packet is missorted. In this cases, remove
+        # this one value missorted.
+        neg_diffs = np.where(diffs < 0)[0]
+
+        while neg_diffs.size > 0:
+            for neg_diff in neg_diffs:
+                sub_sv[0] = np.delete(sub_sv[0], start_index + neg_diff + 1)
+                sub_sv[1] = np.delete(sub_sv[1], start_index + neg_diff + 1)
+                sub_sv[2] = np.delete(sub_sv[2], start_index + neg_diff + 1)
+
+                sub_it = np.delete(sub_it, neg_diff + 1)
+
+            diffs = np.diff(sub_it) - 1
+            neg_diffs = np.where(diffs < 0)[0]
+
+        discontinuities = np.where(diffs > 0)[0]
+
+        # Removing the lost SV drom publisher data
+        if discontinuities.size > 0:
+            for disc in discontinuities:
+                num_lost_values = diffs[disc]
+                for _ in range(num_lost_values):
+                    pub_sv[0] = np.delete(pub_sv[0], start_index + disc + 1)
+                    pub_sv[1] = np.delete(pub_sv[1], start_index + disc + 1)
+                    pub_sv[2] = np.delete(pub_sv[2], start_index + disc + 1)
+
+                diffs = np.diff(sub_it) - 1
+                discontinuities = np.where(diffs > 0)[0]
+                if discontinuities.size == 0:
+                    break
 
 def compute_latency(pub_sv, sub_sv):
     latencies = [[0]] * len(pub_sv)
 
-    # Detect discontinuities
-
     for stream in range(0, len(pub_sv)):
-        if len(pub_sv[stream][1]) != len(sub_sv[stream][1]):
-            pub_discontinuities = detect_sv_drop(pub_sv[stream][1])
-            sub_discontinuities = detect_sv_drop(sub_sv[stream][1])
-
-            if sub_discontinuities[0].size > 0:
-                sv_discontinuities = np.where(sub_discontinuities[1] > 0)
-
-                for sv_discontinuity in sv_discontinuities[0]:
-                    sv_dropped = sub_discontinuities[1][sv_discontinuity]
-
-                    for sv in range(0, sv_dropped):
-                        print(f"Warning: SV {pub_sv[stream][1][sv_discontinuity+1]} dropped in subscriber data")
-                        pub_sv[stream][0] = np.delete(pub_sv[stream][0],sv_discontinuity+1)
-                        pub_sv[stream][1] = np.delete(pub_sv[stream][1],sv_discontinuity+1)
-                        pub_sv[stream][2] = np.delete(pub_sv[stream][2],sv_discontinuity+1)
+        if len(pub_sv[stream][1]) != len(sub_sv[stream]):
+            detect_sv_drop(pub_sv[stream], sub_sv[stream])
 
         latencies[stream] = sub_sv[stream][2] - pub_sv[stream][2]
 
