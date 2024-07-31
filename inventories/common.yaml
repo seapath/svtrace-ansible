@@ -31,6 +31,7 @@ all:
                             enable_bpftrace: # Enable BPFtrace tracing
                             bpftrace_core: # Core to run BPFtrace (should be isolated)
                             first_SV: # First SV counter defined in PCAP file
+                            stream_to_log: # Desired SV stream to record
 
                 publisher:
                     hosts:
@@ -62,3 +63,4 @@ all:
                             bittwist_core: # bittwist CPU core
                             ptp_manual_configuration: # Set to false to disable ptp configuration
                             first_SV: # First SV counter defined in PCAP file
+                            stream_to_log: # Desired SV stream to record

@@ -68,6 +68,9 @@
           --network=host sv_timestamp_logger \
           -d {{sv_interface}} \
           -f /tmp/ts_sv_{{ inventory_hostname }} \
+          {% if 'stream_to_log' is defined %}
+          -s {{ stream_to_log }} \
+          {% endif %}
           --first_SV_cnt \ {{first_SV}} \
           {% if 'hypervisors' in group_names %}
           -t
