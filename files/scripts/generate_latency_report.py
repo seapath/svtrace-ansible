@@ -202,7 +202,6 @@ def generate_adoc(pub, hyp, sub, output, ttot):
                 |Number of latencies < 0us: {_neglat_} ({_neg_percentage_}%)
                 |Number of latencies > {_Ttot_}us: {_lat_Ttot_}
                 |===
-                image::{_image_path_}[]
                 """
         )
 
@@ -214,23 +213,29 @@ def generate_adoc(pub, hyp, sub, output, ttot):
                 |{_minnetlat_} us |{_maxnetlat_} us |{_avgnetlat_} us
                 |Number of latencies > {_Ttot_}us: {_lat_Tseap_}
                 |===
-                image::{_image_path_}[]
                 """
         )
 
-        pacing_block = textwrap.dedent(
+        pub_block = textwrap.dedent(
+            """
+            === Publisher
+            |===
+            |Minimun pacing |Maximum pacing |Average pacing
+            |{_pub_minpace_} us |{_pub_maxpace_} us |{_pub_avgpace_} us
+            |===
+            """
+        )
+        hyp_block = textwrap.dedent(
                 """
-                == Pacing tests
-                === Publisher
-                |===
-                |Minimun pacing |Maximum pacing |Average pacing
-                |{_pub_minpace_} us |{_pub_maxpace_} us |{_pub_avgpace_} us
-                |===
                 === Hypervisor
                 |===
                 |Minimun pacing |Maximum pacing |Average pacing
                 |{_hyp_minpace_} us |{_hyp_maxpace_} us |{_hyp_avgpace_} us
                 |===
+                """
+        )
+        sub_block = textwrap.dedent(
+                """
                 === Subscriber {_sub_name_}
                 |===
                 |Minimun pacing |Maximum pacing |Average pacing
@@ -238,35 +243,37 @@ def generate_adoc(pub, hyp, sub, output, ttot):
                 |===\n
                 """
         )
+        if pub is not None:
+            pub_sv = extract_sv(pub)
+            sub_sv = extract_sv(sub)
+            stream_name, total_latencies = compute_latency(pub_sv, sub_sv)
+            pub_pacing = compute_pacing(pub_sv)
+            pub_pacing_exceeding_threshold = compute_lat_threshold(pub_pacing, 280)
+            total_lat_exceeding_threshold = compute_lat_threshold(total_latencies, ttot)
+            save_sv_lat_threshold("total_latency", total_latencies, pub_sv,  total_lat_exceeding_threshold, output)
+            save_sv_lat_threshold("publisher_pacing", pub_pacing, pub_sv, pub_pacing_exceeding_threshold, output)
+            total_lat_filename = save_histogram("latency", total_latencies,"total",output)
+            plot_stream(stream_name,"latency", total_latencies, "total", output)
+            save_histogram("pacing", pub_pacing,"publisher",output)
+            plot_stream(stream_name,"pacing", pub_pacing, "publisher", output)
 
-        pub_sv = extract_sv(pub)
-        hyp_sv = extract_sv(hyp)
+
         sub_sv = extract_sv(sub)
-        stream_name, total_latencies = compute_latency(pub_sv, sub_sv)
-        _, seapath_latencies = compute_latency(hyp_sv, sub_sv)
-        pub_pacing = compute_pacing(pub_sv)
+        hyp_sv = extract_sv(hyp)
+        stream_name, seapath_latencies = compute_latency(hyp_sv, sub_sv)
         hyp_pacing = compute_pacing(hyp_sv)
         sub_pacing = compute_pacing(sub_sv)
-        total_lat_exceeding_threshold = compute_lat_threshold(total_latencies, ttot)
         seapath_lat_exceeding_threshold = compute_lat_threshold(seapath_latencies, ttot)
-        pub_pacing_exceeding_threshold = compute_lat_threshold(pub_pacing, 280)
         hyp_pacing_exceeding_threshold = compute_lat_threshold(hyp_pacing, 280)
         sub_pacing_exceeding_threshold = compute_lat_threshold(sub_pacing, 280)
 
-        save_sv_lat_threshold("total_latency", total_latencies, pub_sv,  total_lat_exceeding_threshold, output)
-        save_sv_lat_threshold("seapath_latency", seapath_latencies, pub_sv,  seapath_lat_exceeding_threshold, output)
-        save_sv_lat_threshold("publisher_pacing", pub_pacing, pub_sv, pub_pacing_exceeding_threshold, output)
+        save_sv_lat_threshold("seapath_latency", seapath_latencies, sub_sv,  seapath_lat_exceeding_threshold, output)
         save_sv_lat_threshold("hypervisor_pacing", hyp_pacing, hyp_sv, hyp_pacing_exceeding_threshold, output)
         save_sv_lat_threshold("subscriber_pacing", sub_pacing, sub_sv, sub_pacing_exceeding_threshold, output)
 
-        total_lat_filename = save_histogram("latency", total_latencies,"total",output)
-        plot_stream(stream_name,"latency", total_latencies, "total", output)
 
         seap_lat_filename = save_histogram("latency", seapath_latencies,"seapath",output)
         plot_stream(stream_name,"latency", seapath_latencies, "seapath", output)
-
-        save_histogram("pacing", pub_pacing,"publisher",output)
-        plot_stream(stream_name,"pacing", pub_pacing, "publisher", output)
 
         save_histogram("pacing", hyp_pacing,"hypervisor",output)
         plot_stream(stream_name,"pacing", hyp_pacing, "hypervisor", output)
@@ -275,27 +282,27 @@ def generate_adoc(pub, hyp, sub, output, ttot):
         plot_stream(stream_name,"pacing", sub_pacing, "subscriber", output)
 
 
-        streams = len(pub_sv)
+        streams = len(sub_sv)
 
         for stream in range(0, streams):
             adoc_file.write("== Stream {_stream_} Latency tests on {_size_} samples value\n".format(
-                _size_=compute_size(total_latencies[stream]),
+                _size_=compute_size(seapath_latencies[stream]),
                 _stream_=stream))
 
-            adoc_file.write(
-                    total_latency_block.format(
-                        _sub_name_=sub_name,
-                        _stream_= get_stream_count(output),
-                        _minlat_= compute_min(total_latencies[stream]),
-                        _maxlat_= compute_max(total_latencies[stream]),
-                        _avglat_= compute_average(total_latencies[stream]),
-                        _neglat_ = compute_neglat(total_latencies[stream]),
-                        _neg_percentage_ = np.round(compute_neglat(total_latencies[stream]) / compute_size(total_latencies[stream]),5) *100,
-                        _image_path_= total_lat_filename,
-                        _Ttot_ = ttot,
-                        _lat_Ttot_ = len(total_lat_exceeding_threshold)
-                    )
-            )
+            if pub is not None:
+                adoc_file.write(
+                        total_latency_block.format(
+                            _sub_name_=sub_name,
+                            _stream_= get_stream_count(output),
+                            _minlat_= compute_min(total_latencies[stream]),
+                            _maxlat_= compute_max(total_latencies[stream]),
+                            _avglat_= compute_average(total_latencies[stream]),
+                            _neglat_ = compute_neglat(total_latencies[stream]),
+                            _neg_percentage_ = np.round(compute_neglat(total_latencies[stream]) / compute_size(total_latencies[stream]),5) *100,
+                            _Ttot_ = ttot,
+                            _lat_Ttot_ = len(total_lat_exceeding_threshold)
+                        )
+                )
 
             adoc_file.write(
                     seapath_latency_block.format(
@@ -303,29 +310,39 @@ def generate_adoc(pub, hyp, sub, output, ttot):
                         _minnetlat_= compute_min(seapath_latencies[stream]),
                         _maxnetlat_= compute_max(seapath_latencies[stream]),
                         _avgnetlat_= compute_average(seapath_latencies[stream]),
-                        _image_path_= seap_lat_filename,
                         _Ttot_ = ttot,
                         _lat_Tseap_ = len(seapath_lat_exceeding_threshold)
                     )
             )
-
+            adoc_file.write("== Pacing tests\n")
+            if pub is not None:
+                adoc_file.write(
+                        pub_block.format(
+                            _sub_name_=sub_name,
+                            _pub_minpace_= compute_min(pub_pacing[stream]),
+                            _pub_maxpace_= compute_max(pub_pacing[stream]),
+                            _pub_avgpace_= compute_average(pub_pacing[stream]),
+                        )
+                )
             adoc_file.write(
-                    pacing_block.format(
-                        _sub_name_=sub_name,
-                        _pub_minpace_= compute_min(pub_pacing[stream]),
-                        _pub_maxpace_= compute_max(pub_pacing[stream]),
-                        _pub_avgpace_= compute_average(pub_pacing[stream]),
+                    hyp_block.format(
                         _hyp_minpace_= compute_min(hyp_pacing[stream]),
                         _hyp_maxpace_= compute_max(hyp_pacing[stream]),
                         _hyp_avgpace_= compute_average(hyp_pacing[stream]),
+                    )
+            )
+            adoc_file.write(
+                    sub_block.format(
+                        _sub_name_=sub_name,
                         _sub_minpace_= compute_min(sub_pacing[stream]),
                         _sub_maxpace_= compute_max(sub_pacing[stream]),
                         _sub_avgpace_= compute_average(sub_pacing[stream]),
                     )
             )
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate Latency tests report in AsciiDoc format.")
-    parser.add_argument("--pub", "-p", type=str, required=True, help="SV publisher file")
+    parser.add_argument("--pub", "-p", type=str, help="SV publisher file")
     parser.add_argument("--hyp", "-y", type=str, required=True, help="SV hypervisor file")
     parser.add_argument("--sub", "-s", type=str, required=True, help="SV subscriber file")
     parser.add_argument("--output", "-o", default="../results/", type=str, help="Output directory for the generated files.")
