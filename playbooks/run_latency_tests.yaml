@@ -53,8 +53,6 @@
         when: enable_bpftrace is defined and enable_bpftrace|bool == true
 - name: Prepare publisher and receiver
   become: true
-  vars:
-    - first_SV: 1096
   hosts:
     - publisher
     - subscriber
