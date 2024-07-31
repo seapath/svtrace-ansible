@@ -4,14 +4,15 @@ set -e
 
 DEV="$1"
 LAT_THRESHOLD="$2"
+FIRST_SV_CNT="$3"
 export BPFTRACE_MAX_MAP_KEYS=16384
 
 if [ "$DEV" == "hypervisors" ]; then
     IRQ_SV_PID="$(ps -eo comm,pid|grep "{{ sv_interface }}-T"|head -n1| awk '{print $2}')"
     QEMU_PID="$(ps -eo comm,pid|grep "qemu"| awk '{print $2}')"
 
-    chrt -f 1 /tmp/bpftrace /tmp/record_kernel_sv_latency.bt $IRQ_SV_PID $QEMU_PID $LAT_THRESHOLD
+    chrt -f 1 /tmp/bpftrace /tmp/record_kernel_sv_latency.bt $IRQ_SV_PID $QEMU_PID $LAT_THRESHOLD $FIRST_SV_CNT
 
 elif [ "$DEV" == "subscriber" ]; then
-    /tmp/bpftrace /tmp/record_kernel_sv_latency.bt $LAT_THRESHOLD
+    /tmp/bpftrace /tmp/record_kernel_sv_latency.bt $LAT_THRESHOLD $FIRST_SV_CNT
 fi

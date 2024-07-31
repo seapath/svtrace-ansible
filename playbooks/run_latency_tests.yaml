@@ -30,7 +30,7 @@
   tasks:
       - name : Run bpftrace script
         shell:
-          taskset -c {{ bpftrace_core }} /tmp/launch_bpftrace.sh hypervisors {{ Thyp }} > /tmp/thyp
+          taskset -c {{ bpftrace_core }} /tmp/launch_bpftrace.sh hypervisors {{ Thyp }} {{ first_SV }} > /tmp/thyp
         async: 9999999
         poll: 0
         when: enable_bpftrace is defined and enable_bpftrace|bool == true
@@ -43,7 +43,7 @@
   tasks:
       - name : Run bpftrace script
         shell:
-          taskset -c {{ bpftrace_core }} /tmp/launch_bpftrace.sh subscriber {{ Tsub }} > /tmp/tsub
+          taskset -c {{ bpftrace_core }} /tmp/launch_bpftrace.sh subscriber {{ Tsub }} {{ first_SV }} > /tmp/tsub
         async: 9999999
         poll: 0
         when: enable_bpftrace is defined and enable_bpftrace|bool == true

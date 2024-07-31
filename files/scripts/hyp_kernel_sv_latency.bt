@@ -1,8 +1,8 @@
 BEGIN
 {
   @sv_ether_proto = (uint64)47752;
-  @old_sv_counter_skb_push = (uint64)1096;
-  @old_sv_counter_consume_skb = (uint64)1096;
+  @old_sv_counter_skb_push = (uint64)$4;
+  @old_sv_counter_consume_skb = (uint64)$4;
 
   @sv_irq_interface_pid = (uint64)$1;
   @vhost_pid = (uint64)$2;

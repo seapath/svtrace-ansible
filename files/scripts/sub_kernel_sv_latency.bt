@@ -1,8 +1,8 @@
 BEGIN
 {
   @sv_ether_proto = (uint64)47752;
-  @old_sv_counter_tpacket_rcv = (uint64)1096;
-  @old_sv_counter_tpacket_get_timestamp = (uint64)1096;
+  @old_sv_counter_tpacket_rcv = (uint64)$2;
+  @old_sv_counter_tpacket_get_timestamp = (uint64)$2;
 
   @tsub_threshold = (uint64)$1;
   @sv_iteration_tpacket_rcv = 0;
