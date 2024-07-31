@@ -30,6 +30,7 @@ all:
                             bpftrace_script: # BPFtrace script to be run
                             enable_bpftrace: # Enable BPFtrace tracing
                             bpftrace_core: # Core to run BPFtrace (should be isolated)
+                            first_SV: # First SV counter defined in PCAP file
 
                 publisher:
                     hosts:
@@ -60,3 +61,4 @@ all:
                             pcap_file: # Path of the PCAP file to be used
                             bittwist_core: # bittwist CPU core
                             ptp_manual_configuration: # Set to false to disable ptp configuration
+                            first_SV: # First SV counter defined in PCAP file
