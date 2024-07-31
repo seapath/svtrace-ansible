@@ -56,6 +56,7 @@ all:
 
                             pcap_cycles: 10 # Number of PCAP loops to repeat
                             sv_ts_core: # sv_timestamp_logger CPU core
+                            enable_sv_ts: # Enable sv_timestamp_logger
                             pcap_file: # Path of the PCAP file to be used
                             bittwist_core: # bittwist CPU core
                             ptp_manual_configuration: # Set to false to disable ptp configuration
