@@ -30,7 +30,8 @@
   tasks:
       - name : Run bpftrace script
         shell:
-          taskset -c {{ bpftrace_core }} /tmp/launch_bpftrace.sh hypervisors {{ Thyp }} {{ first_SV }} > /tmp/thyp
+          cmd: >-
+            taskset -c {{ bpftrace_core }} seapath-trace.py --record --conf /etc/seapath-trace.cfg --machine hypervisor
         async: 9999999
         poll: 0
         when: enable_bpftrace is defined and enable_bpftrace|bool == true
@@ -43,7 +44,8 @@
   tasks:
       - name : Run bpftrace script
         shell:
-          taskset -c {{ bpftrace_core }} /tmp/launch_bpftrace.sh subscriber {{ Tsub }} {{ first_SV }} > /tmp/tsub
+          cmd: >-
+            taskset -c {{ bpftrace_core }} seapath-trace.py --record --conf /etc/seapath-trace.cfg --machine VM
         async: 9999999
         poll: 0
         when: enable_bpftrace is defined and enable_bpftrace|bool == true
@@ -128,33 +130,36 @@
           mode: pull
         when: enable_sv_ts is defined and enable_sv_ts|bool == true
 
-- name: Cleanup bpftrace on hypervisor
+- name: Cleanup seapath-trace on hypervisor
   become: true
   hosts:
     - hypervisors
   tasks:
-      - name: Fetch bpftrace log
+      - name: End seapath-trace
+        command:
+            killall --wait "seapath-trace.py" --signal SIGINT
+        when: enable_bpftrace is defined and enable_bpftrace|bool == true
+      - name: Fetch seapath-trace result file
         synchronize:
-          src: /tmp/thyp
-          dest: ../tests_results/latency/
+          src: /tmp/results
+          dest: ../tests_results/latency/hyp_seapath_trace.record
           mode: pull
         when: enable_bpftrace is defined and enable_bpftrace|bool == true
-      - name: Stop bpftrace script
-        command: pkill bpftrace
-        when: enable_bpftrace is defined and enable_bpftrace|bool == true
+
 - name: Cleanup bpftrace on subscriber
   become: true
   hosts:
     - subscriber
   tasks:
-      - name: Fetch bpftrace log
-        synchronize:
-          src: /tmp/tsub
-          dest: ../tests_results/latency/
-          mode: pull
+      - name: End seapath-trace
+        command:
+            killall --wait "seapath-trace.py" --signal SIGINT
         when: enable_bpftrace is defined and enable_bpftrace|bool == true
-      - name: Stop bpftrace script
-        command: pkill bpftrace
+      - name: Fetch seapath-trace result file
+        synchronize:
+          src: /tmp/results
+          dest: ../tests_results/latency/sub_seapath_trace.record
+          mode: pull
         when: enable_bpftrace is defined and enable_bpftrace|bool == true
 
 - name: Fetch logs

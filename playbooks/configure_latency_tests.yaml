@@ -74,26 +74,16 @@
         command: docker image load -i /tmp/sv_timestamp_logger.tar
         when: enable_sv_ts is defined and enable_sv_ts|bool == true
 
-- name: Configure bpftrace image
+- name: Configure seapath-trace
   become: true
   hosts:
-    - hypervisors
     - subscriber
+    - hypervisors
   tasks:
-      - name: Get bpftrace
-        get_url:
-          url: https://github.com/bpftrace/bpftrace/releases/download/v0.20.4/bpftrace
-          dest: /tmp/bpftrace
-          mode: 0777
-      - name: Send bpftrace script
-        copy:
-          src: ../files/scripts/{{ bpftrace_script }}.bt
-          dest: /tmp/record_kernel_sv_latency.bt
-      - name: Send bpftrace wrapper
-        template:
-          src: ../files/templates/launch_bpftrace.sh.j2
-          dest: /tmp/launch_bpftrace.sh
-          mode: 0777
+    - name: Send seapath-trace configuration file
+      template:
+          src: ../files/templates/seapath-trace.cfg.j2
+          dest: /etc/seapath-trace.cfg
 
 - name: Prepare vms
   become: true
