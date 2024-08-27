@@ -20,64 +20,83 @@ def detect_sv_drop(pub_sv, sub_sv, iteration_size=4000):
 
     num_it = len(sub_sv[1]) // iteration_size
     total_sv_drops = 0
+    pub_sv_iter = np.sort(np.unique(pub_sv[0].astype(int)))
 
-    for iteration in range(num_it):
-        start_index = iteration * iteration_size - total_sv_drops
-        end_index = start_index + iteration_size
+    for iteration in range(len(pub_sv_iter)):
+        sub_sv_current_iter = np.where(sub_sv[0].astype(int) == iteration)[0]
+        sub_sv_start_index = sub_sv_current_iter[0]
+        sub_sv_end_index = sub_sv_current_iter[-1]+1
+        sub_sv_cnt = sub_sv[1][sub_sv_start_index:sub_sv_end_index]
 
-        if end_index > len(sub_sv[1]):
-            break
-
-        max_val_current_it = np.max(sub_sv[1][start_index:end_index])
-        index_max_val_current_it = np.where(sub_sv[1][start_index:end_index] == max_val_current_it)[0][0]
-
-        sub_it = sub_sv[1][start_index:start_index + index_max_val_current_it + 1]
-
-        diffs = np.diff(sub_it) - 1
-
-        # Neg diffs indicates that a packet is missorted. In this cases, remove
-        # this one value missorted.
+        diffs = np.diff(sub_sv_cnt) - 1
         neg_diffs = np.where(diffs < 0)[0]
 
-        while neg_diffs.size > 0:
-            for neg_diff in neg_diffs:
-                sub_sv[0] = np.delete(sub_sv[0], start_index + neg_diff + 1)
-                sub_sv[1] = np.delete(sub_sv[1], start_index + neg_diff + 1)
-                sub_sv[2] = np.delete(sub_sv[2], start_index + neg_diff + 1)
+        if neg_diffs.size > 0:
+            print("Fatal: SV disordered detected")
+            exit(1)
 
-                sub_it = np.delete(sub_it, neg_diff + 1)
-
-            diffs = np.diff(sub_it) - 1
-            neg_diffs = np.where(diffs < 0)[0]
+        if iteration_size-sub_sv_cnt[-1] > 0:
+            diffs[-1] = iteration_size-sub_sv_cnt[-1] - 1
+        if sub_sv_cnt[0] > 0:
+            diffs[0] = sub_sv_cnt[0] - 1
 
         discontinuities = np.where(diffs > 0)[0]
 
-        # Removing the lost SV drom publisher data
-        if discontinuities.size > 0:
-            for disc in discontinuities:
-                num_lost_values = diffs[disc]
-                for _ in range(num_lost_values):
-                    pub_sv[0] = np.delete(pub_sv[0], start_index + disc + 1)
-                    pub_sv[1] = np.delete(pub_sv[1], start_index + disc + 1)
-                    pub_sv[2] = np.delete(pub_sv[2], start_index + disc + 1)
+        for disc in discontinuities:
+            num_lost_values = diffs[disc]
 
-                diffs = np.diff(sub_it) - 1
-                discontinuities = np.where(diffs > 0)[0]
-                if discontinuities.size == 0:
-                    break
+            if num_lost_values == diffs[-1]:
+                disc += 1
+            if disc == 0:
+                disc += -1
+                num_lost_values += 1
+            for _ in range(num_lost_values):
+                pub_sv[0] = np.delete(pub_sv[0], sub_sv_start_index + disc + 1 )
+                pub_sv[1] = np.delete(pub_sv[1], sub_sv_start_index + disc + 1 )
+                pub_sv[2] = np.delete(pub_sv[2], sub_sv_start_index + disc + 1 )
+            total_sv_drops += num_lost_values
+
+    return total_sv_drops
+
+def investigate_array_differences(array1, array2):
+    # This function checks if pub and sub counter are well aligned.
+    len1 = len(array1)
+    len2 = len(array2)
+
+    min_len = min(len1, len2)
+    max_len = max(len1, len2)
+
+    diff_indices = np.where(array1[:min_len] != array2[:min_len])[0]
+    diffs = [(i, array1[i], array2[i]) for i in diff_indices]
+
+    if len1 > len2:
+        extra_elements = array1[len2:max_len]
+        extra_info = {'array': 'array1', 'indices': np.arange(len2, max_len), 'values': extra_elements}
+    elif len2 > len1:
+        extra_elements = array2[len1:max_len]
+        extra_info = {'array': 'array2', 'indices': np.arange(len1, max_len), 'values': extra_elements}
+    else:
+        extra_info = None
+
+    return diffs, extra_info
 
 def compute_latency(pub_sv, sub_sv):
     latencies = [[0]] * len(pub_sv)
-
+    sv_drop = 0
     for stream in range(0, len(pub_sv)):
-        if len(pub_sv[stream][1]) != len(sub_sv[stream]):
-            detect_sv_drop(pub_sv[stream], sub_sv[stream])
+        if len(pub_sv[stream][1]) != len(sub_sv[stream][1]):
+            sv_drop = detect_sv_drop(pub_sv[stream], sub_sv[stream])
+            diffs, extra_info = investigate_array_differences(pub_sv[stream][1], sub_sv[stream][1])
 
+            if diffs:
+                print("Warning: SV counter misalignment between pub and sub")
+            if extra_info:
+                print(f"Warning: Extra elements in {extra_info['array']} at indices {extra_info['indices']}: {extra_info['values']}")
         latencies[stream] = sub_sv[stream][2] - pub_sv[stream][2]
 
         stream_name = stream
 
-    return stream_name, latencies
+    return stream_name, latencies, sv_drop
 
 
 def extract_sv(sv_file_path):
