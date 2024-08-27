@@ -18,7 +18,7 @@ Seapath architecture by performing network latency tests. Using
 IEC61850 protocol, Samples Value are emitted from a publisher machine
 in destination of a subscriber machine, which will receive, parse, and
 decode them. The subscriber machine can be a physical machine or a
-virtual machine hosted on an hypervisor.
+virtual machine hosted on a hypervisor.
 
 NOTE: Each of the machine used are running a Seapath standalone
 distribution. There is currently no support for a Seapath cluster
@@ -32,18 +32,18 @@ Value between each machine, and inside them:
   publisher machine to the NIC of the subscriber (T3) or of the
   hypervisor machine (T1).
 - Hypervisor latency: Time elapsed between the reception of an SV on
-  the NIC of the hypervisor machine (T1) to the end of the proceed of
+  the NIC of the hypervisor machine (T1) to the end of the processing of
   it (T2). This latency is computed only in the
   context of a virtualized subscriber.
-- Transit latency: Time elapsed between the end of the proceed of an SV on
-  the on the hypervisor machine (T2) to the reception of the SV on the NIC
+- Transit latency: Time elapsed between the end of the processing of an SV on
+  the hypervisor machine (T2) to the reception of the SV on the NIC
   of the subscriber machine (T3). This latency is computed only in the
   context of a virtualized subscriber.
-- subscriber latency: Time elapsed between the reception of an SV on
-  the NIC of the subscriber (T3) machine to the end of the proceed of
+- Subscriber latency: Time elapsed between the reception of an SV on
+  the NIC of the subscriber (T3) machine to the end of the processing of
   it (T4).
 
-At the end of each test, are generated various graph and a test report
+At the end of each test, are generated various graphs and a test report
 in `tests_results` directory.
 
 This project is essential for ensuring that the Seapath platform meets
@@ -60,7 +60,7 @@ the power grid industry.
 ### Requirements
 #### System packages
 
-Make sure your localhost system comply with the following dependencies:
+Make sure your localhost system complies with the following dependencies:
 ```bash
 sudo apt install \
 docker
@@ -88,7 +88,7 @@ exposed with file `/proc/sys/kernel/kptr_restrict`.
 
 In order to properly log the Seapath latency, the clock of the network card receiving the Sample Values must be synchronized in PTP. This is done :
 - Automatically if you use the same network card to receive the PTP frames and the SV
-- Manually, using phc2sys to synchronise the SV network card with the PTP one
+- Manually, using phc2sys to synchronize the SV network card with the PTP one
 
 This is **not done by Ansible and must be handled by the user**
 
