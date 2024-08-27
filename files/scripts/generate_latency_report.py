@@ -18,7 +18,6 @@ def detect_sv_drop(pub_sv, sub_sv, iteration_size=4000):
 # subscriber data, by testing the continuity of the SV counter of
 # subscriber data.
 
-    num_it = len(sub_sv[1]) // iteration_size
     total_sv_drops = 0
     pub_sv_iter = np.sort(np.unique(pub_sv[0].astype(int)))
 
@@ -220,6 +219,7 @@ def generate_adoc(pub, hyp, sub, output, ttot):
                 |{_stream_} |{_minlat_} us |{_maxlat_} us |{_avglat_} us
                 |Number of latencies < 0us: {_neglat_} ({_neg_percentage_}%)
                 |Number of latencies > {_Ttot_}us: {_lat_Ttot_}
+                |SV drop: {_total_sv_drop_}
                 |===
                 """
         )
@@ -231,6 +231,7 @@ def generate_adoc(pub, hyp, sub, output, ttot):
                 |Minimum latency |Maximum latency |Average latency
                 |{_minnetlat_} us |{_maxnetlat_} us |{_avgnetlat_} us
                 |Number of latencies > {_Ttot_}us: {_lat_Tseap_}
+                |SV drop: {_seapath_sv_drop_}
                 |===
                 """
         )
@@ -265,7 +266,7 @@ def generate_adoc(pub, hyp, sub, output, ttot):
         if pub is not None:
             pub_sv = extract_sv(pub)
             sub_sv = extract_sv(sub)
-            stream_name, total_latencies = compute_latency(pub_sv, sub_sv)
+            stream_name, total_latencies, total_sv_drop = compute_latency(pub_sv, sub_sv)
             pub_pacing = compute_pacing(pub_sv)
             pub_pacing_exceeding_threshold = compute_lat_threshold(pub_pacing, 280)
             total_lat_exceeding_threshold = compute_lat_threshold(total_latencies, ttot)
@@ -279,7 +280,7 @@ def generate_adoc(pub, hyp, sub, output, ttot):
 
         sub_sv = extract_sv(sub)
         hyp_sv = extract_sv(hyp)
-        stream_name, seapath_latencies = compute_latency(hyp_sv, sub_sv)
+        stream_name, seapath_latencies, seapath_sv_drop = compute_latency(hyp_sv, sub_sv)
         hyp_pacing = compute_pacing(hyp_sv)
         sub_pacing = compute_pacing(sub_sv)
         seapath_lat_exceeding_threshold = compute_lat_threshold(seapath_latencies, ttot)
@@ -319,7 +320,8 @@ def generate_adoc(pub, hyp, sub, output, ttot):
                             _neglat_ = compute_neglat(total_latencies[stream]),
                             _neg_percentage_ = np.round(compute_neglat(total_latencies[stream]) / compute_size(total_latencies[stream]),5) *100,
                             _Ttot_ = ttot,
-                            _lat_Ttot_ = len(total_lat_exceeding_threshold)
+                            _lat_Ttot_ = len(total_lat_exceeding_threshold[0]),
+                            _total_sv_drop_ = total_sv_drop
                         )
                 )
 
@@ -330,7 +332,8 @@ def generate_adoc(pub, hyp, sub, output, ttot):
                         _maxnetlat_= compute_max(seapath_latencies[stream]),
                         _avgnetlat_= compute_average(seapath_latencies[stream]),
                         _Ttot_ = ttot,
-                        _lat_Tseap_ = len(seapath_lat_exceeding_threshold)
+                        _lat_Tseap_ = len(seapath_lat_exceeding_threshold[0]),
+                        _seapath_sv_drop_ = seapath_sv_drop
                     )
             )
             adoc_file.write("== Pacing tests\n")
