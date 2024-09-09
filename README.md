@@ -1,6 +1,6 @@
-# Seapath performance tool
+# svtrace-ansible
 
-Seapath performance tool is a tool used to evaluate the performance of a Seapath
+svtrace-ansible is a tool used to evaluate the performance of a Seapath
 standalone infrastructure.
 
 ## Table of Contents
@@ -13,7 +13,7 @@ standalone infrastructure.
 
 ## Introduction
 
-Seapath performance tool focuses on assessing the efficiency and reliability of a
+svtrace-ansible focuses on assessing the efficiency and reliability of a
 Seapath architecture by performing network latency tests. Using
 IEC61850 protocol, Samples Value are emitted from a publisher machine
 in destination of a subscriber machine, which will receive, parse, and
@@ -108,7 +108,7 @@ For better PTP performance, we recommend:
 - In the case of a virtual machine as a subscriber, using `kvm_ptp`
 module is highly recommended.
 
-For the Seapath performance tool project, PTP can be configured on Seapath machine
+For the svtrace-ansible project, PTP can be configured on Seapath machine
 without `timemaster` package. To do so:
 
 1. Make sure `ptp4l` and `phc2sys` utilities are installed on each
@@ -118,7 +118,7 @@ Seapath machine
 systemctl disable timemaster.service
 ```
 
-3. PTP variables are correctly configured in your Seapath performance tool inventories
+3. PTP variables are correctly configured in your svtrace-ansible inventories
 files; See README file in `inventories/` directory. In particular, make
 sure `ptp_manual_configuration` is defined.
 4. Finally, you can run the playbook `configure_latency_tests.yaml` using:
@@ -130,7 +130,7 @@ cqfd -b configure_tests
 
 ### General configuration
 
-Seapath machines configuration for the Seapath performance tool project can be set in
+Seapath machines configuration for the svtrace-ansible project can be set in
 the dedicated inventories files. See `inventories/README` for more
 information.
 
@@ -141,7 +141,7 @@ cqfd -b configure_tests
 ```
 
 NOTE: this playbook must be run again each time a variable is modified in a
-Seapath performance tool inventory.
+svtrace-ansible inventory.
 
 ## Usage
 
