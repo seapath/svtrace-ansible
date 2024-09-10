@@ -1,3 +1,7 @@
+<!-- Copyright (C) 2024, RTE (http://www.rte-france.com)
+Copyright (C) 2024 Savoir-faire Linux, Inc.
+SPDX-License-Identifier: Apache-2.0 -->
+
 # svtrace-ansible
 
 svtrace-ansible is a tool used to evaluate the performance of a Seapath
