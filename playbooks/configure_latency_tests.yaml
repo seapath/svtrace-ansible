@@ -83,10 +83,10 @@
     - subscriber
     - hypervisors
   tasks:
-    - name: Send seapath-trace configuration file
+    - name: Send svtrace configuration file
       template:
-          src: ../files/templates/seapath-trace.cfg.j2
-          dest: /etc/seapath-trace.cfg
+          src: ../files/templates/svtrace.cfg.j2
+          dest: /etc/svtrace.cfg
 
 - name: Prepare vms
   become: true
