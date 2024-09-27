@@ -34,7 +34,7 @@
       - name : Run bpftrace script
         shell:
           cmd: >-
-            taskset -c {{ bpftrace_core }} seapath-trace.py --record --conf /etc/seapath-trace.cfg --machine hypervisor
+            taskset -c {{ bpftrace_core }} svtrace.py --record --conf /etc/svtrace.cfg --machine hypervisor
         async: 9999999
         poll: 0
         when: enable_bpftrace is defined and enable_bpftrace|bool == true
@@ -48,7 +48,7 @@
       - name : Run bpftrace script
         shell:
           cmd: >-
-            taskset -c {{ bpftrace_core }} seapath-trace.py --record --conf /etc/seapath-trace.cfg --machine VM
+            taskset -c {{ bpftrace_core }} svtrace.py --record --conf /etc/svtrace.cfg --machine VM
         async: 9999999
         poll: 0
         when: enable_bpftrace is defined and enable_bpftrace|bool == true
@@ -133,19 +133,19 @@
           mode: pull
         when: enable_sv_ts is defined and enable_sv_ts|bool == true
 
-- name: Cleanup seapath-trace on hypervisor
+- name: Cleanup svtrace on hypervisor
   become: true
   hosts:
     - hypervisors
   tasks:
-      - name: End seapath-trace
+      - name: End svtrace
         command:
-            killall --wait "seapath-trace.py" --signal SIGINT
+            killall --wait "svtrace.py" --signal SIGINT
         when: enable_bpftrace is defined and enable_bpftrace|bool == true
-      - name: Fetch seapath-trace result file
+      - name: Fetch svtrace result file
         synchronize:
           src: /tmp/results
-          dest: ../tests_results/latency/hyp_seapath_trace.record
+          dest: ../tests_results/latency/hyp_svtrace.record
           mode: pull
         when: enable_bpftrace is defined and enable_bpftrace|bool == true
 
@@ -154,14 +154,14 @@
   hosts:
     - subscriber
   tasks:
-      - name: End seapath-trace
+      - name: End svtrace
         command:
-            killall --wait "seapath-trace.py" --signal SIGINT
+            killall --wait "svtrace.py" --signal SIGINT
         when: enable_bpftrace is defined and enable_bpftrace|bool == true
-      - name: Fetch seapath-trace result file
+      - name: Fetch svtrace result file
         synchronize:
           src: /tmp/results
-          dest: ../tests_results/latency/sub_seapath_trace.record
+          dest: ../tests_results/latency/sub_svtrace.record
           mode: pull
         when: enable_bpftrace is defined and enable_bpftrace|bool == true
 
