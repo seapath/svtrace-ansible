@@ -83,21 +83,10 @@
     - subscriber
     - hypervisors
   tasks:
-    - name: get svtrace
-      get_url:
-        url: https://github.com/seapath/svtrace/archive/refs/tags/v0.1.1.tar.gz
-        dest: /tmp
-      when: enable_bpftrace is defined and enable_bpftrace|bool == true
-    - name: extract svtrace
-      unarchive:
-        src: /tmp/svtrace-0.1.1.tar.gz
-        dest: /tmp
-        remote_src: yes
-      when: enable_bpftrace is defined and enable_bpftrace|bool == true
     - name: install svtrace
-      shell:
-        cmd: >-
-          cd /tmp/svtrace-0.1 && python3 setup.py install
+      ansible.builtin.pip:
+        name: git+https://github.com/seapath/svtrace.git@v0.1.1
+        extra_args: --break-system-packages
       when: enable_bpftrace is defined and enable_bpftrace|bool == true
     - name: Send svtrace configuration file
       template:
