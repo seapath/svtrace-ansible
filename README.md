@@ -77,6 +77,24 @@ cd cqfd
 sudo make install
 ```
 
+Normally, svtrace-ansible is designed to be run on localhost inside a
+Docker container. If you wish to run svtrace-ansible directly on the
+localhost machine, make sure it complies with the following
+dependencies:
+
+```bash
+sudo apt install \
+ansible \
+bash \
+python3 \
+python3-pip \
+rsync
+
+sudo pip install \
+matplotlib \
+numpy
+```
+
 #### Seapath machine
 
 A valid IEC61850 PCAP file is needed on the publisher machine. The
@@ -85,6 +103,35 @@ variable.
 
 In order to access kernel symbol names, kernel addresses must be
 exposed with file `/proc/sys/kernel/kptr_restrict`.
+
+## Requirements
+### Publisher machine
+Make sure the following package is installed on the publisher machine:
+
+```bash
+sudo apt install \
+docker \
+rsync
+```
+
+The user used by Ansible, targeted by inventory variable `ansible_user`
+variable must be configured on the publisher machine to have sudo access.
+
+### Hypervisor and subscriber machines
+Make sure the following packages are installed on each hypervisor
+subscriber machines:
+
+```bash
+sudo apt install \
+docker \
+psmisc \
+rsync \
+tshark
+```
+
+The user used by Ansible, targeted by inventory variable `ansible_user`
+variable must be configured on the subscriber and hypervisor machines
+to have sudo access.
 
 ## Configuration
 ###  Time synchronization
