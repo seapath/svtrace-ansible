@@ -6,3 +6,4 @@ files/docker/sv_timestamp_logger/sv_timestamp_logger
 *.tar
 .vscode/
 playbooks/debug.yaml
+.ansible/
