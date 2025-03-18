@@ -18,6 +18,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 	git \
 	locales \
 	python3 \
+	python3-pandas \
 	python3-pip \
 	python3-matplotlib \
 	python3-numpy \
