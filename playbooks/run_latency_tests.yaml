@@ -86,6 +86,17 @@
     - name: End sv_timestamp_logger
       include_role:
         name: "end_sv_timestamp_logger"
+- name: Compute results
+  hosts:
+    localhost
+  tasks:
+    - name: Build_sv_timestamp_analysis
+      include_role:
+        name: "build_sv_timestamp_analysis"
+    - name: Generate sv_timestamp_results
+      include_role:
+        name: "generate_sv_timestamp_results"
+
 
 - name: Cleanup svtrace on hypervisor
   become: true
@@ -118,29 +129,3 @@
           dest: ../tests_results/latency/sub_svtrace.record
           mode: pull
         when: enable_bpftrace is defined and enable_bpftrace|bool == true
-
-- name: Compute results
-  hosts:
-    - localhost
-  vars_files:
-    - ../vars/threshold.yaml
-  tasks:
-    - name: Record end time of the test
-      shell:
-        cmd: >-
-          echo Test ended at $(echo `date +'%T'`) >> ../tests_results/time
-    - name: Set publisher host variable
-      set_fact:
-        publisher_name: "{{ hostvars[groups['publisher'][0]].inventory_hostname }}"
-        hypervisor_name: "{{ hostvars[groups['hypervisors'][0]].inventory_hostname }}"
-    - name: Generate latency report
-      command:
-        python3 ../files/scripts/generate_latency_report.py  \
-        -s ../tests_results/data/ts_sv_{{ hostvars[item].inventory_hostname }} \
-        -y ../tests_results/data/ts_sv_{{ hypervisor_name }} \
-        {% if publisher_name.enable_sv_ts is defined %}
-          -p ../tests_results/data/ts_sv_{{ publisher_name }} \
-        {% endif %}
-        -o ../tests_results \
-        --ttot {{ Ttot }}
-      with_items: "{{ groups['subscriber'] }}"
