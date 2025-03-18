@@ -1,0 +1,7 @@
+# Copyright (C) 2025 Savoir-faire Linux, Inc.
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Clone sv-timestamp-analysis
+  git:
+    repo: https://github.com/seapath/sv-timestamp-analysis
+    dest: ../sv-timestamp-analysis

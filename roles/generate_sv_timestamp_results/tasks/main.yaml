@@ -1,0 +1,18 @@
+# Copyright (C) 2024 Savoir-faire Linux, Inc.
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Get publisher hostname
+  set_fact:
+    publisher_name: "{{ hostvars[groups['publisher'][0]].inventory_hostname }}"
+- name: Generate SV results
+  shell:
+    cmd: >-
+        python3 ../sv-timestamp-analysis/sv_timestamp_analysis.py \
+          --sub "../tests_results/data/ts_{{ hostvars[item].inventory_hostname }}.txt" \
+          --pub "../tests_results/data/ts_{{ publisher_name }}.txt" \
+          --subscriber_name "{{ hostvars[item].inventory_hostname }}" \
+          --stream "0" \
+          --max_latency {{ hostvars[item]['max_latency'] | default(max_latency) }} \
+          --display_max_latency \
+          -o "../tests_results/data/ci_latency_tests_{{ hostvars[item].inventory_hostname }}/"
+  with_items: "{{ groups['subscriber'] }}"
