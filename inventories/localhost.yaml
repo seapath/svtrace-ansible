@@ -1,0 +1,10 @@
+---
+# This inventory is used for running svtrace-ansible in localhost,
+# for CI purpose.
+all:
+    hosts:
+        localhost:
+            ansible_connection: local
+            ansible_user: root
+            ansible_python_interpreter: "{{ansible_playbook_python}}"
+            ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
