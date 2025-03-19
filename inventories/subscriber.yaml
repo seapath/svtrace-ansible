@@ -17,12 +17,6 @@ all:
                             ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
                             ansible_remote_tmp: /tmp/.ansible/tmp
 
-                            # PTP configuration
-                            ptp_interface: # PTP interface
-                            ptp_device: # PTP device synchronized by ptp4l
-                            ptp_core:  # ptp4l CPU core
-                            phc_core:  # phc2sys CPU core
-
                             sv_interface: # SV reception interface
 
                             sv_ts_core:  # sv_timestamp_logger CPU core
