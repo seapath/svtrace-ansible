@@ -95,7 +95,7 @@
     publisher
   tasks:
       - name: Send SV
-        command: chrt --fifo 1 taskset -c {{ bittwist_core }} bittwist -i {{ sv_interface }} {{ pcap_file }}.pcap -l {{ pcap_cycles }}
+        command: chrt --fifo 1 taskset -c {{ bittwist_core }} bittwist -i {{ sv_interface }} {{ pcap_path }}{{ pcap_file }} -l {{ pcap_loop }}
 
 - name: End test
   become: true
@@ -165,30 +165,6 @@
           mode: pull
         when: enable_bpftrace is defined and enable_bpftrace|bool == true
 
-- name: Fetch logs
-  become: true
-  hosts:
-    - publisher
-    - hypervisors
-    - subscriber
-  tasks:
-      - name: Extract PTP logs
-        shell:
-          cmd: >-
-            journalctl -b -u {{ item }}.service > /tmp/{{ item }}_{{ inventory_hostname }}
-        with_items:
-          - ptp4l
-          - phc2sys
-        when: ptp_manual_configuration is defined and ptp_manual_configuration|bool == true
-      - name: Fetch PTP logs
-        synchronize:
-          src: /tmp/{{ item }}_{{ inventory_hostname }}
-          dest: ../tests_results/ptp/
-          mode: pull
-        with_items:
-          - ptp4l
-          - phc2sys
-        when: ptp_manual_configuration is defined and ptp_manual_configuration|bool == true
 - name: Compute results
   hosts:
     - localhost
@@ -214,19 +190,3 @@
         -o ../tests_results \
         --ttot {{ Ttot }}
       with_items: "{{ groups['subscriber'] }}"
-    - name: Generate phc2sys plots
-      command:
-        python3 ../files/scripts/plot_ptp.py \
-        -i ../tests_results/ptp/phc2sys_{{ item }} \
-        -o ../tests_results
-      with_items: "{{ groups['all'] }}"
-      when: ptp_manual_configuration is defined and ptp_manual_configuration|bool == true
-    - name: Generate phc2sys plots
-      command:
-        python3 ../files/scripts/plot_ptp.py \
-        -i ../tests_results/ptp/ptp4l_{{ item }} \
-        -o ../tests_results
-      with_items:
-      - "{{ groups['publisher'] }}"
-      - "{{ groups['hypervisors'] }}"
-      when: ptp_manual_configuration is defined and ptp_manual_configuration|bool == true
