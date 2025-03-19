@@ -1,0 +1,17 @@
+# Copyright (C) 2025 Savoir-faire Linux, Inc.
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: set platform
+  set_fact:
+    target_architecture: "{{ hostvars[inventory_hostname]['target_platform'] | default(target_platform) }}"
+- name: Transfer sv_timestamp_logger Docker archive from localhost to {{ inventory_hostname }}
+  synchronize:
+    src: /tmp/sv_timestamp_logger_{{ target_architecture }}.tar
+    dest: /tmp/sv_timestamp_logger_{{ target_architecture }}.tar
+  delegate_to: localhost
+- name: Load sv_timestamp_logger Docker archive
+  become: true
+  docker_image:
+    name: sv_timestamp_logger_{{ target_architecture }}
+    load_path: /tmp/sv_timestamp_logger_{{ target_architecture }}.tar
+    source: load

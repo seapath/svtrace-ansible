@@ -1,0 +1,31 @@
+# Copyright (C) 2025 Savoir-faire Linux, Inc.
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: set platform
+  set_fact:
+    target_architecture: "{{ hostvars[inventory_hostname]['target_platform'] | default(target_platform) }}"
+- name: Generate sv_drops file
+  become: true
+  shell:
+    cmd: >-
+      docker logs sv_timestamp_logger_{{ target_architecture }} > /tmp/sv_drops
+- name: Stop sv_timestamp_logger container
+  become: true
+  docker_container:
+    name: sv_timestamp_logger_{{ target_architecture }}
+    state: absent
+- name: Lower generated files permission
+  become: true
+  file:
+    path: /tmp/sv_drops
+    mode: '0644'
+- name: Fetch sv drop
+  synchronize:
+    src: /tmp/sv_drops
+    dest: ../tests_results/data/
+    mode: pull
+- name: Fetch SV timestamps
+  synchronize:
+    src: "{{ ansible_user_dir }}/latency_tests/ts_{{ inventory_hostname }}.txt"
+    dest: ../tests_results/data/
+    mode: pull
