@@ -1,0 +1,22 @@
+# Copyright (C) 2025 Savoir-faire Linux, Inc.
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: set platform
+  set_fact:
+    target_architecture: "{{ hostvars[subscriber_name]['target_platform'] | default(target_platform) }}"
+- name: Clone sv_timestamp_logger
+  git:
+    repo: https://github.com/seapath/sv_timestamp_logger
+    dest: /tmp/sv_timestamp_logger
+- name: Build sv_timestamp_logger
+  docker_image:
+    build:
+      path: /tmp/sv_timestamp_logger/
+      platform: "linux/{{ target_architecture }}"
+    name: sv_timestamp_logger_{{ target_architecture }}
+    source: build
+- name: Create sv_timestamp_logger archive
+  docker_image:
+    name: sv_timestamp_logger_{{ target_architecture }}
+    archive_path: /tmp/sv_timestamp_logger_{{ target_architecture }}.tar
+    source: local

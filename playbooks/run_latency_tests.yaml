@@ -57,40 +57,20 @@
           timeout: 5
         when: enable_bpftrace is defined and enable_bpftrace|bool == true
 - name: Prepare publisher and receiver
-  become: true
   hosts:
     - publisher
     - subscriber
     - hypervisors
   tasks:
-      - name : Run SV timestamp logger container
-        command:
-          docker run --privileged \
-          -d \
-          -v /tmp:/tmp \
-          --cpuset-cpus={{ sv_ts_core }} \
-          --name sv_timestamp_logger \
-          --network=host sv_timestamp_logger \
-          -d {{sv_interface}} \
-          -f /tmp/ts_sv_{{ inventory_hostname }} \
-          {% if 'stream_to_log' is defined %}
-          -s {{ stream_to_log }} \
-          {% endif %}
-          --first_SV_cnt \ {{first_SV}} \
-          {% if 'hypervisors' in group_names %}
-          -t
-          {% endif %}
-          --max_SV_cnt 4000
-        when: enable_sv_ts is defined and enable_sv_ts|bool == true
+    - name: Gather ansible_user_dir fact
+      setup:
+        filter: ansible_user_dir
 
-      - name: Set FIFO scheduling on SV timestamp logger process
-        shell:
-          PID=$(ps -eTo comm,pid |grep sv_timestamp_lo|cut -d' ' -f2)
-          chrt --fifo -p 1 $PID
-        when: enable_sv_ts is defined and enable_sv_ts|bool == true
+    - name: Run sv_timestamp_logger
+      include_role:
+        name: "run_sv_timestamp_logger"
 
 - name: Start test
-  become: true
   hosts:
     publisher
   tasks:
@@ -98,40 +78,14 @@
         command: chrt --fifo 1 taskset -c {{ bittwist_core }} bittwist -i {{ sv_interface }} {{ pcap_path }}{{ pcap_file }} -l {{ pcap_loop }}
 
 - name: End test
-  become: true
   hosts:
     - publisher
     - subscriber
     - hypervisors
   tasks:
-      - name: Stop SV timestamp logger
-        command:
-          docker stop sv_timestamp_logger
-        when: enable_sv_ts is defined and enable_sv_ts|bool == true
-
-      - name: Compute results
-        shell:
-          cmd: >-
-            docker logs sv_timestamp_logger > /tmp/sv_drops
-        when: enable_sv_ts is defined and enable_sv_ts|bool == true
-
-      - name: Fetch sv drop
-        synchronize:
-          src: /tmp/sv_drops
-          dest: ../tests_results/data/
-          mode: pull
-        when: enable_sv_ts is defined and enable_sv_ts|bool == true
-      - name: Remove SV timestamp logger
-        command:
-          docker rm sv_timestamp_logger
-        when: enable_sv_ts is defined and enable_sv_ts|bool == true
-
-      - name: Fetch SV timestamps
-        synchronize:
-          src: /tmp/ts_sv_{{ inventory_hostname }}
-          dest: ../tests_results/data/
-          mode: pull
-        when: enable_sv_ts is defined and enable_sv_ts|bool == true
+    - name: End sv_timestamp_logger
+      include_role:
+        name: "end_sv_timestamp_logger"
 
 - name: Cleanup svtrace on hypervisor
   become: true

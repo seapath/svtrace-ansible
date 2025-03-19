@@ -2,6 +2,26 @@
 # Copyright (C) 2024 Savoir-faire Linux, Inc.
 # SPDX-License-Identifier: Apache-2.0
 ---
+- name: Prepare localhost
+  hosts:
+    - localhost
+  tasks:
+    - name: Build sv_timestamp_logger for each subscriber
+      include_role:
+        name: "build_sv_timestamp_logger"
+      with_items: "{{ groups['subscriber'] }}"
+      loop_control:
+        loop_var: subscriber_name
+
+- name: Prepare SEAPATH target
+  hosts:
+    - publisher
+    - subscriber
+  tasks:
+    - name: Deploy sv_timestamp_logger
+      include_role:
+        name: "deploy_sv_timestamp_logger"
+
 - name: Prepare publisher and hypervisor
   become: true
   hosts:
@@ -12,23 +32,6 @@
         shell:
           cmd: >-
             echo 0 > /proc/sys/kernel/kptr_restrict
-
-- name: Configure SV timestamp logger
-  become: true
-  hosts:
-    - publisher
-    - subscriber
-    - hypervisors
-  tasks:
-      - name: Send SV timestamp logger
-        copy:
-          src: ../files/docker/sv_timestamp_logger/sv_timestamp_logger.tar
-          dest: /tmp/sv_timestamp_logger.tar
-        when: enable_sv_ts is defined and enable_sv_ts|bool == true
-
-      - name: Load SV timestamp logger
-        command: docker image load -i /tmp/sv_timestamp_logger.tar
-        when: enable_sv_ts is defined and enable_sv_ts|bool == true
 
 - name: Configure svtrace
   become: true
