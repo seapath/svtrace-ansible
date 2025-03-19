@@ -137,9 +137,7 @@ to have sudo access.
 ###  Time synchronization
 #### Network cards
 
-In order to properly log the Seapath latency, the clock of the network card receiving the Sample Values must be synchronized in PTP. This is done :
-- Automatically if you use the same network card to receive the PTP frames and the SV
-- Manually, using phc2sys to synchronize the SV network card with the PTP one
+In order to properly log the Seapath latency, the clock of the network card receiving the Sample Values must be synchronized in PTP.
 
 This is **not done by Ansible and must be handled by the user**
 
@@ -159,23 +157,6 @@ For better PTP performance, we recommend:
 - In the case of a virtual machine as a subscriber, using `kvm_ptp`
 module is highly recommended.
 
-For the svtrace-ansible project, PTP can be configured on Seapath machine
-without `timemaster` package. To do so:
-
-1. Make sure `ptp4l` and `phc2sys` utilities are installed on each
-Seapath machine
-2. `timemaster.service` is disabled on each Seapath machine:
-```bash
-systemctl disable timemaster.service
-```
-
-3. PTP variables are correctly configured in your svtrace-ansible inventories
-files; See README file in `inventories/` directory. In particular, make
-sure `ptp_manual_configuration` is defined.
-4. Finally, you can run the playbook `configure_latency_tests.yaml` using:
-```bash
-cqfd -b configure_tests
-```
 
 ### Synchronizing
 
