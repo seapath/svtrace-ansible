@@ -20,9 +20,8 @@ all:
                             sv_interface: # SV reception interface
 
                             sv_ts_core:  # sv_timestamp_logger CPU core
-                            bpftrace_script: # BPFtrace script to be run
                             ptp_manual_configuration: # Remove this var to disable ptp configuration
-                            enable_bpftrace: # Enable BPFtrace tracing
-                            bpftrace_core: # Core to run BPFtrace (should be isolated)
+                            enable_svtrace: # Enable svtrace tracing
+                            svtrace_core: # Core to run svtrace (should be isolated)
                             first_SV: # First SV counter defined in PCAP file
                             stream_to_log: # Desired SV stream to record. If not set, all streams are logged.

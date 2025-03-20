@@ -36,7 +36,7 @@
     - name: Run svtrace
       include_role:
         name: "run_svtrace"
-      when: enable_bpftrace is defined and enable_bpftrace|bool == true
+      when: enable_svtrace is defined and enable_svtrace|bool == true
     - name: Run sv_timestamp_logger
       include_role:
         name: "run_sv_timestamp_logger"
@@ -76,4 +76,4 @@
       - name: End svtrace
         include_role:
           name: "end_svtrace"
-        when: enable_bpftrace is defined and enable_bpftrace|bool == true
+        when: enable_svtrace is defined and enable_svtrace|bool == true
