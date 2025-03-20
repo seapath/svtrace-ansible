@@ -1,0 +1,25 @@
+# Copyright (C) 2025 Savoir-faire Linux, Inc.
+# SPDX-License-Identifier: Apache-2.0
+---
+- name : Run svtrace
+  shell:
+    cmd: >-
+      taskset -c {{ bpftrace_core }} svtrace.py --record --conf /etc/svtrace.cfg --machine {{ group_names[0] }}
+  async: 9999999
+  poll: 0
+  register: svtrace_status
+- name: Make sure svtrace has time to start
+  wait_for:
+    timeout: 5
+- name: Register svtrace status
+  set_fact:
+    active_svtrace: >-
+      {{
+        active_svtrace +
+        [
+          {
+            'machine': group_names[0],
+            'status': svtrace_status
+          }
+        ]
+      }}

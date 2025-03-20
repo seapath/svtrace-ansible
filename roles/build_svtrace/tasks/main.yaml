@@ -1,0 +1,13 @@
+# Copyright (C) 2025 Savoir-faire Linux, Inc.
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: Install svtrace
+  ansible.builtin.pip:
+    name: git+https://github.com/seapath/svtrace.git@v0.1.1
+    extra_args: --break-system-packages
+  when: enable_bpftrace is defined and enable_bpftrace|bool == true
+- name: Send svtrace configuration file
+  template:
+      src: ../files/templates/svtrace.cfg.j2
+      dest: /etc/svtrace.cfg
+  when: enable_bpftrace is defined and enable_bpftrace|bool == true
