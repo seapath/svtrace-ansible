@@ -1,0 +1,11 @@
+# Copyright (C) 2025 Savoir-faire Linux, Inc.
+# SPDX-License-Identifier: Apache-2.0
+---
+- name: End svtrace
+  command:
+      killall --wait "svtrace.py" --signal SIGINT
+- name: Fetch svtrace result file
+  synchronize:
+    src: /tmp/results
+    dest: ../tests_results/latency/hyp_svtrace.record
+    mode: pull

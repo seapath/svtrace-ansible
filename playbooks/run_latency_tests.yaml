@@ -24,38 +24,6 @@
         cmd: >-
           echo Test started at $(echo `date +'%T'`) > ../tests_results/data/time
 
-- name: Launch bpftrace on hypervisors
-  become: true
-  hosts:
-    - hypervisors
-  vars_files:
-    - ../vars/threshold.yaml
-  tasks:
-      - name : Run bpftrace script
-        shell:
-          cmd: >-
-            taskset -c {{ bpftrace_core }} svtrace.py --record --conf /etc/svtrace.cfg --machine hypervisor
-        async: 9999999
-        poll: 0
-        when: enable_bpftrace is defined and enable_bpftrace|bool == true
-- name: Launch bpftrace on subscriber
-  become: true
-  hosts:
-    - subscriber
-  vars_files:
-    - ../vars/threshold.yaml
-  tasks:
-      - name : Run bpftrace script
-        shell:
-          cmd: >-
-            taskset -c {{ bpftrace_core }} svtrace.py --record --conf /etc/svtrace.cfg --machine VM
-        async: 9999999
-        poll: 0
-        when: enable_bpftrace is defined and enable_bpftrace|bool == true
-      - name: Make sure bpftrace has time to start
-        wait_for:
-          timeout: 5
-        when: enable_bpftrace is defined and enable_bpftrace|bool == true
 - name: Prepare publisher and receiver
   hosts:
     - publisher
@@ -65,7 +33,10 @@
     - name: Gather ansible_user_dir fact
       setup:
         filter: ansible_user_dir
-
+    - name: Run svtrace
+      include_role:
+        name: "run_svtrace"
+      when: enable_bpftrace is defined and enable_bpftrace|bool == true
     - name: Run sv_timestamp_logger
       include_role:
         name: "run_sv_timestamp_logger"
@@ -96,36 +67,13 @@
     - name: Generate sv_timestamp_results
       include_role:
         name: "generate_sv_timestamp_results"
-
-
 - name: Cleanup svtrace on hypervisor
   become: true
   hosts:
     - hypervisors
-  tasks:
-      - name: End svtrace
-        command:
-            killall --wait "svtrace.py" --signal SIGINT
-        when: enable_bpftrace is defined and enable_bpftrace|bool == true
-      - name: Fetch svtrace result file
-        synchronize:
-          src: /tmp/results
-          dest: ../tests_results/latency/hyp_svtrace.record
-          mode: pull
-        when: enable_bpftrace is defined and enable_bpftrace|bool == true
-
-- name: Cleanup bpftrace on subscriber
-  become: true
-  hosts:
     - subscriber
   tasks:
       - name: End svtrace
-        command:
-            killall --wait "svtrace.py" --signal SIGINT
-        when: enable_bpftrace is defined and enable_bpftrace|bool == true
-      - name: Fetch svtrace result file
-        synchronize:
-          src: /tmp/results
-          dest: ../tests_results/latency/sub_svtrace.record
-          mode: pull
+        include_role:
+          name: "end_svtrace"
         when: enable_bpftrace is defined and enable_bpftrace|bool == true
