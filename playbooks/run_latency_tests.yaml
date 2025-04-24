@@ -61,9 +61,6 @@
   hosts:
     localhost
   tasks:
-    - name: Build_sv_timestamp_analysis
-      include_role:
-        name: "build_sv_timestamp_analysis"
     - name: Generate sv_timestamp_results
       include_role:
         name: "generate_sv_timestamp_results"

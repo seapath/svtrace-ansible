@@ -28,7 +28,5 @@
       -d {{ sv_interface }}
       -f "/tmp/latency_tests/ts_{{ inventory_hostname }}.txt"
       -s svID0000
-      {% if 'publisher' in group_names %}
-      -t
-      {% endif %}
+
   when: enable_sv_ts is defined and enable_sv_ts|bool == true

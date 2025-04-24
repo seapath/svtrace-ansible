@@ -6,6 +6,9 @@
   hosts:
     - localhost
   tasks:
+    - name: Build_sv_timestamp_analysis
+      include_role:
+        name: "build_sv_timestamp_analysis"
     - name: Build sv_timestamp_logger for each subscriber
       include_role:
         name: "build_sv_timestamp_logger"
@@ -22,17 +25,6 @@
       include_role:
         name: "deploy_sv_timestamp_logger"
 
-- name: Prepare publisher and hypervisor
-  become: true
-  hosts:
-    - publisher
-    - hypervisors
-  tasks:
-      - name: Disable kernel adresses exposition restriction
-        shell:
-          cmd: >-
-            echo 0 > /proc/sys/kernel/kptr_restrict
-
 - name: Configure svtrace
   become: true
   hosts:
@@ -42,13 +34,3 @@
     - name: Configure svtrace
       include_role:
         name: "build_svtrace"
-
-- name: Prepare vms
-  become: true
-  hosts:
-    - subscriber
-  tasks:
-      - name: Disable kernel adresses exposition restriction
-        shell:
-          cmd: >-
-            echo 0 > /proc/sys/kernel/kptr_restrict
