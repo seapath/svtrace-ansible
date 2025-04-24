@@ -35,7 +35,7 @@
         shell:
           cmd: >-
             echo 0 > /proc/sys/kernel/kptr_restrict
-
+        when: enable_svtrace is defined and enable_svtrace|bool == true
 - name: Configure svtrace
   become: true
   hosts:
@@ -55,3 +55,4 @@
         shell:
           cmd: >-
             echo 0 > /proc/sys/kernel/kptr_restrict
+        when: enable_svtrace is defined and enable_svtrace|bool == true
