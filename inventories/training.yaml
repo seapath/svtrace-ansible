@@ -1,0 +1,46 @@
+# Copyright (C) 2024, RTE (http://www.rte-france.com)
+# Copyright (C) 2024 Savoir-faire Linux, Inc.
+# SPDX-License-Identifier: Apache-2.0
+---
+all:
+  children:
+    standalone_machine:
+      children:
+        publisher:
+          hosts:
+            build_pc:
+              ansible_host: ""  # TODO -- Build PC Admin IP
+              ansible_user: root
+              ansible_become: false
+
+              sv_interface: "" # TODO -- Build PC SV ethernet interface name
+
+              # .pcap file is provided for this lab
+              pcap_file: "8_streams_4000_SV.pcap"   # 1s of SV
+              pcap_path: "/home/seapath/seapath/labs/"
+
+              pcap_loop: 10       # Number of time the pcap_file file is played
+
+              enable_sv_ts: true  # Enable sv_timestamp_logger
+              bittwist_core: 1    # CPU running bittwist
+              sv_ts_core: 2       # CPU running sv_timestamp_logger
+              stream_to_log: 0
+              first_SV: 0
+
+        subscriber:
+          hosts:
+            vm:
+              ansible_host: ""  # TODO -- VM Admin IP
+              ansible_user: admin
+
+              sv_interface: ""  # TODO -- VM SV ethernet interface name
+              enable_sv_ts: true
+              sv_ts_core: 1
+              stream_to_log: 0
+              first_SV: 0
+
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+    ansible_connection: ssh
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no'
+    ansible_remote_tmp: /tmp/.ansible/tmp
