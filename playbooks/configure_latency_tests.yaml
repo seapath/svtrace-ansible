@@ -6,6 +6,9 @@
   hosts:
     - localhost
   tasks:
+    - name: Build_sv_timestamp_analysis
+      include_role:
+        name: "build_sv_timestamp_analysis"
     - name: Build sv_timestamp_logger for each subscriber
       include_role:
         name: "build_sv_timestamp_logger"
