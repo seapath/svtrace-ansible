@@ -46,7 +46,7 @@
     publisher
   tasks:
       - name: Send SV
-        command: chrt --fifo 1 taskset -c {{ bittwist_core }} bittwist -i {{ sv_interface }} {{ pcap_path }}{{ pcap_file }} -l {{ pcap_loop }}
+        command: chrt --fifo 1 taskset -c {{ bittwist_core }} bittwist -i {{ sv_interface }} {{ pcap_path }}{{ pcap_file }} -l {{ pcap_cycles }}
 
 - name: End test
   hosts:
