@@ -27,7 +27,7 @@
     command: >
       -d {{ sv_interface }}
       -f "/tmp/latency_tests/ts_{{ inventory_hostname }}.txt"
-      -s svID0000
+      -s {{ stream_to_log }}
       {% if 'publisher' in group_names %}
       -t
       {% endif %}
