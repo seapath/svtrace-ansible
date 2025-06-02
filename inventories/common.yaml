@@ -25,6 +25,7 @@ all:
                             sv_ts_core: # sv_timestamp_logger CPU core
                             enable_svtrace: # Enable svtrace tracing
                             svtrace_core: # Core to run svtrace (should be isolated)
+                            enable_sv_ts: # Enable sv_timestamp_logger
                             first_SV: # First SV counter defined in PCAP file
                             stream_to_log: # Desired SV stream to record
 
