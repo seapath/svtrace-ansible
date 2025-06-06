@@ -49,7 +49,7 @@ all:
                             phc_core: # phc2sys CPU core
                             ptp_device: # PTP device synchronized by ptp4l
 
-                            sv_interface: # SV reception interface
+                            sv_interface: # SV transmission interface
 
                             pcap_cycles: 10 # Number of PCAP loops to repeat
                             sv_ts_core: # sv_timestamp_logger CPU core
