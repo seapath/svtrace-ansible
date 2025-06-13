@@ -3,6 +3,9 @@
 # SPDX-License-Identifier: Apache-2.0
 ---
 all:
+    vars:
+      first_SV: # First SV counter defined in PCAP file
+      stream_to_log: # Desired SV stream to record. If not set, all streams are logged.
     children:
         standalone_machine:
             children:
@@ -26,8 +29,6 @@ all:
                             enable_svtrace: # Enable svtrace tracing
                             svtrace_core: # Core to run svtrace (should be isolated)
                             enable_sv_ts: # Enable sv_timestamp_logger
-                            first_SV: # First SV counter defined in PCAP file
-                            stream_to_log: # Desired SV stream to record
 
                 publisher:
                     hosts:
@@ -58,5 +59,3 @@ all:
                             enable_sv_ts: # Enable sv_timestamp_logger
                             bittwist_core: # bittwist CPU core
                             ptp_manual_configuration: # Set to false to disable ptp configuration
-                            first_SV: # First SV counter defined in PCAP file
-                            stream_to_log: # Desired SV stream to record
