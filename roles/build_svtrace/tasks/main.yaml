@@ -8,6 +8,6 @@
   when: enable_svtrace is defined and enable_svtrace|bool == true
 - name: Send svtrace configuration file
   template:
-      src: ../files/templates/svtrace.cfg.j2
+      src: svtrace.cfg.j2
       dest: /etc/svtrace.cfg
   when: enable_svtrace is defined and enable_svtrace|bool == true
