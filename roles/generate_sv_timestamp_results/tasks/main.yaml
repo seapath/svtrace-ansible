@@ -11,7 +11,7 @@
           --sub "../tests_results/data/ts_{{ hostvars[item].inventory_hostname }}.txt" \
           --pub "../tests_results/data/ts_{{ publisher_name }}.txt" \
           --subscriber_name "{{ hostvars[item].inventory_hostname }}" \
-          --stream "0" \
+          --stream {{ stream_to_log }} \
           --max_latency {{ hostvars[item]['max_latency'] | default(max_latency) }} \
           --display_max_latency \
           -o "../tests_results/data/ci_latency_tests_{{ hostvars[item].inventory_hostname }}/"
