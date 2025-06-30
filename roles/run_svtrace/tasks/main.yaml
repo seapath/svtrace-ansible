@@ -2,9 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 ---
 - name : Run svtrace
-  shell:
-    cmd: >-
-      taskset -c {{ svtrace_core }} svtrace.py --record --conf /etc/svtrace.cfg --machine {{ "hypervisor" if group_names[0] == "hypervisors" else group_names[0] }}
+  shell: |
+    . {{ svtrace_venv_path }}/bin/activate
+    taskset -c {{ svtrace_core }} svtrace.py --record --conf /etc/svtrace.cfg --machine {{ "hypervisor" if group_names[0] == "hypervisors" else group_names[0] }}
   async: 9999999
   poll: 0
   register: svtrace_status

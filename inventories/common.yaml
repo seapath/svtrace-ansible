@@ -6,6 +6,7 @@ all:
     vars:
       first_SV: # First SV counter defined in PCAP file
       stream_to_log: # Desired SV stream to record. If not set, all streams are logged.
+      svtrace_venv_path: /tmp/svtrace_venv/
     children:
         standalone_machine:
             children:
