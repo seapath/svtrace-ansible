@@ -5,7 +5,7 @@
   ansible.builtin.pip:
     virtualenv: "{{ svtrace_venv_path }}"
     virtualenv_command: "{{ ansible_python_interpreter }} -m venv "
-    name: git+https://github.com/seapath/svtrace.git@v0.1.1
+    name: git+https://github.com/seapath/svtrace.git@v0.1.2
   when: enable_svtrace is defined and enable_svtrace|bool == true
 - name: Send svtrace configuration file
   template:
