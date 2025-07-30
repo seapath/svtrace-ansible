@@ -22,7 +22,7 @@
 - name: Fetch sv drop
   synchronize:
     src: /tmp/sv_drops
-    dest: ../tests_results/data/
+    dest: ../tests_results/data/sv_drops_{{ inventory_hostname }}
     mode: pull
 - name: Fetch SV timestamps
   synchronize:
