@@ -147,7 +147,7 @@ For achieving high accuracy latency measure each machine must be
 synchronized using the PTP protocol.
 To implement PTP on Seapath you can follow the detailed procedure in
 the Seapath Wiki, section "Time synchronization":
-https://wiki.lfenergy.org/display/SEAP/Time+synchronization
+https://lf-energy.atlassian.net/wiki/spaces/SEAP/pages/31820633/Time+synchronization
 
 For better PTP performance, we recommend:
 - The isolation, if possible of `ptp4l` and `phc2sys` process
