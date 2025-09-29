@@ -5,3 +5,4 @@
   git:
     repo: https://github.com/seapath/sv-timestamp-analysis
     dest: ../sv-timestamp-analysis
+    version: 7d5c90d45e8059d252c97109e6974d37de84fd29

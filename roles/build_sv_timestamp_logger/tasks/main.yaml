@@ -8,6 +8,7 @@
   git:
     repo: https://github.com/seapath/sv_timestamp_logger
     dest: /tmp/sv_timestamp_logger
+    version: 9232187c03c2b13df26a9c82f995ebccecbf3c1e
 - name: Build sv_timestamp_logger
   docker_image:
     build:
