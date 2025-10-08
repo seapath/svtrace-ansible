@@ -18,9 +18,6 @@ all:
                             ansible_remote_tmp: /tmp/.ansible/tmp
 
                             sv_interface: # SV reception interface
-
-                            sv_ts_core:  # sv_timestamp_logger CPU core
-                            ptp_manual_configuration: # Remove this var to disable ptp configuration
                             enable_svtrace: # Enable svtrace tracing
                             svtrace_core: # Core to run svtrace (should be isolated)
                             enable_sv_ts: true # Enable sv_timestamp_logger
