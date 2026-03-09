@@ -12,6 +12,6 @@
 - name: Load sv_timestamp_logger Docker archive
   become: true
   docker_image:
-    name: sv_timestamp_logger_{{ target_architecture }}
+    name: localhost/sv_timestamp_logger_{{ target_architecture }}
     load_path: /tmp/sv_timestamp_logger_{{ target_architecture }}.tar
     source: load

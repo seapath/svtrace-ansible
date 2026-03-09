@@ -14,7 +14,7 @@
   become: true
   docker_container:
     name: sv_timestamp_logger_{{ target_architecture }}
-    image: sv_timestamp_logger_{{ target_architecture }}
+    image: localhost/sv_timestamp_logger_{{ target_architecture }}
     state: started
     detach: true
     privileged: true
