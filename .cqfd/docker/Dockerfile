@@ -46,3 +46,5 @@ RUN sed -i "s/# en_US\.UTF-8 UTF-8/en_US\.UTF-8 UTF-8/" /etc/locale.gen
 RUN locale-gen
 RUN dpkg-reconfigure locales
 ADD check_yaml.sh /usr/bin/check_yaml
+
+RUN ansible-galaxy collection install community.docker:==4.8.7 -p /usr/share/ansible/collections
