@@ -16,4 +16,5 @@
       platform: "linux/{{ target_architecture }}"
     name: sv_timestamp_logger_{{ target_architecture }}
     archive_path: /tmp/sv_timestamp_logger_{{ target_architecture }}.tar
+    force_source: true
     source: build
