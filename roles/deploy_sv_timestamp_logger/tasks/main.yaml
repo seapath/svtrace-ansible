@@ -14,4 +14,5 @@
   docker_image:
     name: localhost/sv_timestamp_logger_{{ target_architecture }}
     load_path: /tmp/sv_timestamp_logger_{{ target_architecture }}.tar
+    force_source: true
     source: load
