@@ -21,11 +21,10 @@ all:
 
               pcap_loop: 10       # Number of time the pcap_file file is played
 
-              enable_sv_ts: true  # Enable sv_timestamp_logger
+              # The build PC NIC has no hardware PTP support, so it is no
+              # longer used as the SV reference. It only sends bittwist.
+              enable_sv_ts: false
               bittwist_core: 1    # CPU running bittwist
-              sv_ts_core: 2       # CPU running sv_timestamp_logger
-              stream_to_log: 0
-              first_SV: 0
 
         subscriber:
           hosts:
@@ -38,6 +37,18 @@ all:
               sv_ts_core: 1
               stream_to_log: 0
               first_SV: 0
+
+              # Read userspace timestamps from the NIC PHC instead of
+              # CLOCK_REALTIME so they share the same clock domain as the
+              # hardware-timestamped reference logger.
+              clock_device: "/dev/ptp0"
+
+        reference_logger:
+          hosts:
+            vm:
+              # The reference (hardware-timestamped) logger runs on the VM
+              # itself, on a CPU distinct from the subscriber logger.
+              hw_ts_core: 2
 
   vars:
     ansible_python_interpreter: /usr/bin/python3

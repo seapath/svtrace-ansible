@@ -4,31 +4,31 @@
 - name: set platform
   set_fact:
     target_architecture: "{{ hostvars[inventory_hostname]['target_platform'] | default(target_platform) }}"
-- name: Stop sv_timestamp_logger container
+
+- name: Stop hardware sv_timestamp_logger container
   become: true
   docker_container:
-    name: sv_timestamp_logger_{{ target_architecture }}
+    name: sv_timestamp_logger_hw_{{ target_architecture }}
     state: absent
 
-- name: Run SV timestamp logger container
+- name: Run hardware-timestamping SV timestamp logger container
   become: true
   docker_container:
-    name: sv_timestamp_logger_{{ target_architecture }}
+    name: sv_timestamp_logger_hw_{{ target_architecture }}
     image: sv_timestamp_logger_{{ target_architecture }}
     state: started
     detach: true
     privileged: true
     volumes:
       - "{{ ansible_user_dir }}/latency_tests:/tmp/latency_tests"
-    devices: "{{ ['/dev/ptp0:/dev/ptp0'] if (clock_device is defined and clock_device | length > 0) else omit }}"
+    devices:
+      - "/dev/ptp0:/dev/ptp0"
     network_mode: host
     capabilities:
       - NET_ADMIN
       - SYS_NICE
     command: >
       -d {{ sv_interface }}
-      -f "/tmp/latency_tests/ts_{{ inventory_hostname }}.txt"
+      -f "/tmp/latency_tests/ts_hw_{{ inventory_hostname }}.txt"
       -s svID0000
-      {{ ('--clock_device ' ~ clock_device) if (clock_device is defined and clock_device | length > 0) else '' }}
-
-  when: enable_sv_ts is defined and enable_sv_ts|bool == true
+      -t

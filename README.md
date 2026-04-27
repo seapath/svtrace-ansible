@@ -141,6 +141,32 @@ In order to properly log the Seapath latency, the clock of the network card rece
 
 This is **not done by Ansible and must be handled by the user**
 
+##### Training setup (publisher without hardware PTP)
+
+In the training setup, the publisher (build PC) NIC has no hardware
+PTP support, which produced unreliable — sometimes negative —
+latencies when it was used as the SV reference.
+
+The reference (`T0`) timestamps are therefore captured on the VM
+itself by a second `sv_timestamp_logger` instance running with
+hardware timestamping (`-t`). Both loggers running on the VM read
+their userspace timestamps from the NIC PHC (`/dev/ptp0`) via the
+`--clock_device` option, so the userspace timestamps and the
+hardware-timestamped reference share the same clock domain. The
+diff between the two files is therefore the userspace processing
+delay on the VM.
+
+The build PC keeps only its `bittwist` sender role.
+
+The relevant inventory groups are:
+
+- `publisher`: build PC, only sends bittwist
+  (`enable_sv_ts: false`).
+- `subscriber`: VM running the userspace `sv_timestamp_logger`
+  with `clock_device: /dev/ptp0` → output `ts_<host>.txt`.
+- `reference_logger`: VM running the hardware-timestamped
+  `sv_timestamp_logger` with `-t` → output `ts_hw_<host>.txt`.
+
 #### System
 
 For achieving high accuracy latency measure each machine must be

@@ -26,7 +26,6 @@
 
 - name: Prepare publisher and receiver
   hosts:
-    - publisher
     - subscriber
     - hypervisors
   tasks:
@@ -41,6 +40,17 @@
       include_role:
         name: "run_sv_timestamp_logger"
 
+- name: Run hardware-timestamping reference logger
+  hosts:
+    - reference_logger
+  tasks:
+    - name: Gather ansible_user_dir fact
+      setup:
+        filter: ansible_user_dir
+    - name: Run sv_timestamp_logger_hw
+      include_role:
+        name: "run_sv_timestamp_logger_hw"
+
 - name: Start test
   hosts:
     publisher
@@ -50,13 +60,19 @@
 
 - name: End test
   hosts:
-    - publisher
     - subscriber
     - hypervisors
   tasks:
     - name: End sv_timestamp_logger
       include_role:
         name: "end_sv_timestamp_logger"
+- name: End hardware-timestamping reference logger
+  hosts:
+    - reference_logger
+  tasks:
+    - name: End sv_timestamp_logger_hw
+      include_role:
+        name: "end_sv_timestamp_logger_hw"
 - name: Compute results
   hosts:
     localhost
