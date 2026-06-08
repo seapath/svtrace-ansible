@@ -9,11 +9,12 @@
     repo: https://github.com/seapath/sv_timestamp_logger
     dest: /tmp/sv_timestamp_logger
 - name: Build sv_timestamp_logger
-  docker_image:
-    build:
-      path: /tmp/sv_timestamp_logger/
-      platform: "linux/{{ target_architecture }}"
+  community.docker.docker_image_build:
+    path: /tmp/sv_timestamp_logger/
+    platform: "linux/{{ target_architecture }}"
     name: localhost/sv_timestamp_logger_{{ target_architecture }}
-    archive_path: /tmp/sv_timestamp_logger_{{ target_architecture }}.tar
-    force_source: true
-    source: build
+    rebuild: "always"
+- name: Export sv_timestamp_logger
+  community.docker.docker_image_export:
+    name: localhost/sv_timestamp_logger_{{ target_architecture }}
+    path: /tmp/sv_timestamp_logger_{{ target_architecture }}.tar
