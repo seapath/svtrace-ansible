@@ -48,6 +48,15 @@
       - name: Send SV
         command: chrt --fifo 1 taskset -c {{ bittwist_core }} bittwist -i {{ sv_interface }} {{ pcap_file }} -l {{ pcap_cycles }}
 
+- name: Start test
+  hosts:
+    - localhost
+  tasks:
+    - name: Wait for test to end
+      ansible.builtin.pause:
+        minutes: "{{ test_duration | default(1)}}"
+      when: groups["publisher"] | length == 0
+
 - name: End test
   hosts:
     - publisher
