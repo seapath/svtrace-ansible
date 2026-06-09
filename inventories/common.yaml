@@ -7,6 +7,9 @@ all:
       first_SV: # First SV counter defined in PCAP file
       stream_to_log: # Desired SV stream to record. If not set, all streams are logged.
       svtrace_venv_path: /tmp/svtrace_venv/
+      # The duration to let the tests run when no publisher
+      # is found (external SV publisher) in minutes
+      test_duration: 10
     children:
         standalone_machine:
             children:
