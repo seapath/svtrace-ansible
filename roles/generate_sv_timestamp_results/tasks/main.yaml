@@ -4,12 +4,23 @@
 - name: Get publisher hostname
   set_fact:
     publisher_name: "{{ hostvars[groups['publisher'][0]].inventory_hostname }}"
-- name: Generate SV results
+  when: groups["publisher"] | length > 0
+
+- name: Get reference logger hostname
+  set_fact:
+    reference_logger_name: "{{ hostvars[groups['reference_logger'][0]].inventory_hostname }}"
+  when: groups["reference_logger"] | length > 0
+
+- name: Generate SV results with publisher as reference
   shell:
     cmd: >-
         python3 ../sv-timestamp-analysis/sv_timestamp_analysis.py \
           --sub "../tests_results/data/ts_{{ hostvars[item].inventory_hostname }}.txt" \
+          {% if reference_logger_name is defined %}
+          --pub "../tests_results/data/ts_hw_{{ reference_logger_name }}.txt" \
+          {% else %}
           --pub "../tests_results/data/ts_{{ publisher_name }}.txt" \
+          {% endif %}
           --subscriber_name "{{ hostvars[item].inventory_hostname }}" \
           --stream {{ stream_to_log }} \
           --max_latency {{ hostvars[item]['max_latency'] | default(max_latency) }} \
