@@ -60,3 +60,11 @@ all:
                             pcap_cycles: 10 # Number of PCAP loops to repeat
                             enable_sv_ts: # Enable sv_timestamp_logger
                             bittwist_core: # bittwist CPU cored
+
+                reference_logger:
+                    hosts:
+                    # Add a host with hardware timestamping capability to use as
+                    # reference instead of the publisher.
+                    # The host can be one of the subscribers to measure the
+                    # userspace processing delay.
+                        # vm_name:
