@@ -20,6 +20,7 @@
   hosts:
     - publisher
     - subscriber
+    - reference_logger
   tasks:
     - name: Deploy sv_timestamp_logger
       include_role:
