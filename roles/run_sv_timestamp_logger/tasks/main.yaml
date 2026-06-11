@@ -21,6 +21,7 @@
     cpuset_cpus: "{{ sv_ts_core if (sv_ts_core is defined and not sv_ts_core is none) else omit }}"
     volumes:
       - "{{ ansible_user_dir }}/latency_tests:/tmp/latency_tests"
+    devices: "{{ [clock_device ~ ':' ~ clock_device] if (clock_device is defined and clock_device | length > 0) else omit }}"
     network_mode: host
     capabilities:
       - NET_ADMIN
@@ -32,4 +33,5 @@
       {% if 'publisher' in group_names %}
       -t
       {% endif %}
+      {{ ('--clock_device ' ~ clock_device) if (clock_device is defined and clock_device | length > 0) else '' }}
   when: enable_sv_ts is defined and enable_sv_ts|bool == true
