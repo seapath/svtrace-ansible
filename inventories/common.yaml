@@ -32,6 +32,7 @@ all:
                             enable_svtrace: # Enable svtrace tracing
                             svtrace_core: # Core to run svtrace (should be isolated)
                             enable_sv_ts: # Enable sv_timestamp_logger
+                            sv_ts_core: # sv_timestamp_logger CPU core
 
                 publisher:
                     hosts:
@@ -59,6 +60,7 @@ all:
                             pcap_file: # PCAP file to be used (absolute path)
                             pcap_cycles: 10 # Number of PCAP loops to repeat
                             enable_sv_ts: # Enable sv_timestamp_logger
+                            sv_ts_core: # sv_timestamp_logger CPU core
                             bittwist_core: # bittwist CPU cored
 
                 reference_logger:
@@ -68,3 +70,4 @@ all:
                     # The host can be one of the subscribers to measure the
                     # userspace processing delay.
                         # vm_name:
+                            # hw_ts_core: # sv_timestamp_logger_hw CPU core
