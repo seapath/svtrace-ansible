@@ -18,6 +18,7 @@
     state: started
     detach: true
     privileged: true
+    cpuset_cpus: "{{ sv_ts_core if (sv_ts_core is defined and not sv_ts_core is none) else omit }}"
     volumes:
       - "{{ ansible_user_dir }}/latency_tests:/tmp/latency_tests"
     network_mode: host

@@ -19,6 +19,7 @@
     state: started
     detach: true
     privileged: true
+    cpuset_cpus: "{{ hw_ts_core if (hw_ts_core is defined and not hw_ts_core is none) else omit }}"
     volumes:
       - "{{ ansible_user_dir }}/latency_tests:/tmp/latency_tests"
     devices:
