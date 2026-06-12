@@ -9,7 +9,7 @@
 - name: Get reference logger hostname
   set_fact:
     reference_logger_name: "{{ hostvars[groups['reference_logger'][0]].inventory_hostname }}"
-  when: groups["reference_logger"] | length > 0
+  when: groups["reference_logger"] is defined and groups["reference_logger"] | length > 0
 
 - name: Generate SV results with publisher as reference
   shell:
